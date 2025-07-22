@@ -146,6 +146,8 @@ function BaseChatContent({
     setAncestorMessages,
     append,
     isLoading,
+    isWaiting,
+    isStreaming,
     error,
     setMessages,
     input: _input,
@@ -488,7 +490,11 @@ function BaseChatContent({
           {/* Fixed loading indicator at bottom left of chat container */}
           {isLoading && (
             <div className="absolute bottom-1 left-4 z-20 pointer-events-none">
-              <LoadingGoose message={isLoadingSummary ? 'summarizing conversation…' : undefined} />
+              <LoadingGoose 
+                message={isLoadingSummary ? 'summarizing conversation…' : undefined}
+                isWaiting={isWaiting}
+                isStreaming={isStreaming}
+              />
             </div>
           )}
         </div>
