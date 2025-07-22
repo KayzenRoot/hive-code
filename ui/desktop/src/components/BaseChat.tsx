@@ -67,19 +67,12 @@ import { useSessionContinuation } from '../hooks/useSessionContinuation';
 import { useFileDrop } from '../hooks/useFileDrop';
 import { useCostTracking } from '../hooks/useCostTracking';
 import { Message } from '../types/message';
-import { Recipe } from '../recipe';
 
 // Context for sharing current model info
 const CurrentModelContext = createContext<{ model: string; mode: string } | null>(null);
 export const useCurrentModelInfo = () => useContext(CurrentModelContext);
 
-export interface ChatType {
-  id: string;
-  title: string;
-  messageHistoryIndex: number;
-  messages: Message[];
-  recipeConfig?: Recipe | null; // Add recipe configuration to chat state
-}
+import { ChatType } from '../types/chat';
 
 interface BaseChatProps {
   chat: ChatType;
@@ -206,17 +199,29 @@ function BaseChatContent({
 
   // Reset recipe usage tracking when recipe changes
   useEffect(() => {
-    if (recipeConfig?.title !== currentRecipeTitle) {
-      setCurrentRecipeTitle(recipeConfig?.title || null);
-      setHasStartedUsingRecipe(false);
+    const previousTitle = currentRecipeTitle;
+    const newTitle = recipeConfig?.title || null;
+    const hasRecipeChanged = newTitle !== currentRecipeTitle;
 
-      // Clear existing messages when a new recipe is loaded
-      if (recipeConfig?.title && recipeConfig.title !== currentRecipeTitle) {
+    if (hasRecipeChanged) {
+      setCurrentRecipeTitle(newTitle);
+
+      const isSwitchingBetweenRecipes = previousTitle && newTitle;
+      const isInitialRecipeLoad = !previousTitle && newTitle && messages.length === 0;
+      const hasExistingConversation = newTitle && messages.length > 0;
+
+      if (isSwitchingBetweenRecipes) {
+        console.log('Switching from recipe:', previousTitle, 'to:', newTitle);
+        setHasStartedUsingRecipe(false);
         setMessages([]);
         setAncestorMessages([]);
+      } else if (isInitialRecipeLoad) {
+        setHasStartedUsingRecipe(false);
+      } else if (hasExistingConversation) {
+        setHasStartedUsingRecipe(true);
       }
     }
-  }, [recipeConfig?.title, currentRecipeTitle, setMessages, setAncestorMessages]);
+  }, [recipeConfig?.title, currentRecipeTitle, messages.length, setMessages, setAncestorMessages]);
 
   // Handle recipe auto-execution
   useEffect(() => {
@@ -429,29 +434,6 @@ function BaseChatContent({
                             {error.message || 'Honk! Goose experienced an error while responding'}
                           </div>
 
-                          {/* Expandable Error Details */}
-                          <details className="w-full max-w-2xl mb-2">
-                            <summary className="text-xs text-textSubtle cursor-pointer hover:text-textStandard transition-colors">
-                              Error details
-                            </summary>
-                            <div className="mt-2 p-3 bg-bgSubtle border border-borderSubtle rounded-lg text-xs font-mono text-textStandard">
-                              <div className="mb-2">
-                                <strong>Error Type:</strong> {error.name || 'Unknown'}
-                              </div>
-                              <div className="mb-2">
-                                <strong>Message:</strong> {error.message || 'No message'}
-                              </div>
-                              {error.stack && (
-                                <div>
-                                  <strong>Stack Trace:</strong>
-                                  <pre className="mt-1 whitespace-pre-wrap text-xs overflow-x-auto">
-                                    {error.stack}
-                                  </pre>
-                                </div>
-                              )}
-                            </div>
-                          </details>
-
                           {/* Regular retry button for non-token-limit errors */}
                           <div
                             className="px-3 py-2 mt-2 text-center whitespace-nowrap cursor-pointer text-textStandard border border-borderSubtle hover:bg-bgSubtle rounded-full inline-block transition-all duration-150"
@@ -507,7 +489,7 @@ function BaseChatContent({
             isLoading={isLoading}
             onStop={onStopGoose}
             commandHistory={commandHistory}
-            initialValue={_input || initialPrompt}
+            initialValue={_input || (messages.length === 0 ? initialPrompt : '')}
             setView={setView}
             numTokens={sessionTokenCount}
             inputTokens={sessionInputTokens || localInputTokens}
