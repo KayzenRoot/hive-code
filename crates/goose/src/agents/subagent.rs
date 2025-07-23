@@ -1,3 +1,4 @@
+use crate::agents::subagent_task_config::DEFAULT_SUBAGENT_MAX_TURNS;
 use crate::{
     agents::extension::ExtensionConfig,
     agents::{extension_manager::ExtensionManager, Agent, TaskConfig},
@@ -203,20 +204,6 @@ impl SubAgent {
             .as_ref()
             .ok_or_else(|| anyhow!("No provider configured for subagent"))?;
 
-        // Check if we've exceeded max turns
-        {
-            let turn_count = *self.turn_count.lock().await;
-            if let Some(max_turns) = self.config.max_turns {
-                if turn_count >= max_turns {
-                    self.set_status(SubAgentStatus::Completed(
-                        "Maximum turns exceeded".to_string(),
-                    ))
-                    .await;
-                    return Err(anyhow!("Maximum turns ({}) exceeded", max_turns));
-                }
-            }
-        }
-
         // Set status to processing
         self.set_status(SubAgentStatus::Processing).await;
 
@@ -225,17 +212,6 @@ impl SubAgent {
         {
             let mut conversation = self.conversation.lock().await;
             conversation.push(user_message.clone());
-        }
-
-        // Increment turn count
-        {
-            let mut turn_count = self.turn_count.lock().await;
-            *turn_count += 1;
-            self.send_mcp_notification(
-                "turn_progress",
-                &format!("Turn {}/{}", turn_count, self.config.max_turns.unwrap_or(0)),
-            )
-            .await;
         }
 
         // Get the current conversation for context
@@ -255,8 +231,14 @@ impl SubAgent {
         // Build system prompt using the template
         let system_prompt = self.build_system_prompt(&tools).await?;
 
+        // Generate response from provider with loop for tool processing (max_turns iterations)
+        let mut loop_count = 0;
+        let max_turns = self.config.max_turns.unwrap_or(DEFAULT_SUBAGENT_MAX_TURNS);
+
         // Generate response from provider
         loop {
+            loop_count += 1;
+
             match Agent::generate_response_from_provider(
                 Arc::clone(provider),
                 &system_prompt,
@@ -281,7 +263,7 @@ impl SubAgent {
                         .collect();
 
                     // If there are no tool requests, we're done
-                    if tool_requests.is_empty() {
+                    if tool_requests.is_empty() || loop_count >= max_turns {
                         self.add_message(response.clone()).await;
 
                         // Send notification about response
@@ -290,9 +272,6 @@ impl SubAgent {
                             &format!("Responded: {}", response.as_concat_text()),
                         )
                         .await;
-
-                        // Add delay before completion to ensure all processing finishes
-                        tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
                         // Set status back to ready and return the final response
                         self.set_status(SubAgentStatus::Completed("Completed!".to_string()))

@@ -1,9 +1,16 @@
 use crate::providers::base::Provider;
 use rmcp::model::JsonRpcMessage;
+use std::env;
 use std::fmt;
 use std::sync::Arc;
 use tokio::sync::mpsc;
 use uuid::Uuid;
+
+/// Default maximum number of turns for task execution
+pub const DEFAULT_SUBAGENT_MAX_TURNS: usize = 5;
+
+/// Environment variable name for configuring max turns
+pub const GOOSE_SUBAGENT_MAX_TURNS_ENV_VAR: &str = "GOOSE_SUBAGENT_MAX_TURNS";
 
 /// Configuration for task execution with all necessary dependencies
 #[derive(Clone)]
@@ -31,7 +38,12 @@ impl TaskConfig {
             id: Uuid::new_v4().to_string(),
             provider,
             mcp_tx,
-            max_turns: Some(10),
+            max_turns: Some(
+                env::var(GOOSE_SUBAGENT_MAX_TURNS_ENV_VAR)
+                    .ok()
+                    .and_then(|val| val.parse::<usize>().ok())
+                    .unwrap_or(DEFAULT_SUBAGENT_MAX_TURNS),
+            ),
         }
     }
 
