@@ -1,16 +1,17 @@
 ---
 title: VS Code Extension
-description: Use the Goose VS Code Extension to connect Goose to your editor
+sidebar_label: VS Code Extension
+sidebar_position: 4
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-:::warning 
-This extension is experimental and under development.
+:::warning
+This is an experimental extension enables you to use Goose within VS Code. It is not to be confused with the [VS Code MCP Server](/docs/mcp/vs-code-mcp).
 :::
 
-This tutorial covers how to install and use the [Goose VS Code Extension](https://marketplace.visualstudio.com/items?itemName=block.vscode-goose) so you can use Goose interactively for file operations and development workflow management from within VS Code.
+This tutorial covers how to install and use the [Goose VS Code Extension](https://marketplace.visualstudio.com/items?itemName=block.vscode-goose) so you can use Goose within VS Code.
 
 :::info Prerequisite
 - [VS Code](https://code.visualstudio.com/) version 1.95.0 or higher is required
