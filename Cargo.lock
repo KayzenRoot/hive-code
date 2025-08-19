@@ -2687,6 +2687,7 @@ dependencies = [
  "tracing",
  "tracing-appender",
  "tracing-subscriber",
+ "uuid",
  "webbrowser 1.0.4",
  "winapi",
 ]
@@ -2774,6 +2775,7 @@ dependencies = [
  "tracing-appender",
  "tracing-subscriber",
  "utoipa",
+ "uuid",
 ]
 
 [[package]]
