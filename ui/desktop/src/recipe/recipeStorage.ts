@@ -1,6 +1,7 @@
 import { listRecipes, RecipeManifestResponse } from '../api';
 import { Recipe } from './index';
 import * as yaml from 'yaml';
+import { validateRecipe, getValidationErrorMessages } from './validation';
 
 export interface SaveRecipeOptions {
   name: string;
@@ -77,13 +78,10 @@ export async function saveRecipe(recipe: Recipe, options: SaveRecipeOptions): Pr
     throw new Error('Invalid recipe name');
   }
 
-  // Validate recipe has required fields
-  if (!recipe.title || !recipe.description) {
-    throw new Error('Recipe is missing required fields (title, description)');
-  }
-
-  if (!recipe.instructions && !recipe.prompt) {
-    throw new Error('Recipe must have either instructions or prompt');
+  const validationResult = validateRecipe(recipe);
+  if (!validationResult.success) {
+    const errorMessages = getValidationErrorMessages(validationResult.errors);
+    throw new Error(`Recipe validation failed: ${errorMessages.join(', ')}`);
   }
 
   try {
