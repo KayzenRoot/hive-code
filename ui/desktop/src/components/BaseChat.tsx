@@ -210,6 +210,7 @@ function BaseChatContent({
     isGeneratingRecipe,
     isParameterModalOpen,
     setIsParameterModalOpen,
+    recipeParameters,
     handleParameterSubmit,
     handleAutoExecution,
     recipeError,
@@ -388,6 +389,7 @@ function BaseChatContent({
                         Array.isArray(recipeConfig.activities) ? recipeConfig.activities : null
                       }
                       title={recipeConfig.title}
+                      parameterValues={recipeParameters || {}}
                     />
                   ) : showPopularTopics ? (
                     /* Show PopularChatTopics when no real messages, no recipe, and showPopularTopics is true (Pair view) */
