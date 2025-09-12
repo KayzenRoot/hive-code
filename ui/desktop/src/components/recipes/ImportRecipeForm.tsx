@@ -9,8 +9,8 @@ import { saveRecipe } from '../../recipe/recipeStorage';
 import * as yaml from 'yaml';
 import { toastSuccess, toastError } from '../../toasts';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
-import { RecipeNameField, recipeNameSchema } from './shared/RecipeNameField';
-import { generateRecipeNameFromTitle } from './shared/recipeNameUtils';
+import { RecipeTitleField } from './shared/RecipeTitleField';
+import { listSavedRecipes } from '../../recipe/recipeStorage';
 import {
   validateRecipe,
   getValidationErrorMessages,
@@ -39,7 +39,15 @@ const importRecipeSchema = z
         if (!file) return true;
         return file.size <= 1024 * 1024;
       }, 'File is too large, max size is 1MB'),
-    recipeName: recipeNameSchema,
+    recipeTitle: z
+      .string()
+      .min(1, 'Recipe title is required')
+      .max(100, 'Recipe title must be 100 characters or less')
+      .refine((title) => title.trim().length > 0, 'Recipe title cannot be empty')
+      .refine(
+        (title) => /^[^<>:"/\\|?*]+$/.test(title.trim()),
+        'Recipe title contains invalid characters (< > : " / \\ | ? *)'
+      ),
     global: z.boolean(),
   })
   .refine((data) => (data.deeplink && data.deeplink.trim()) || data.recipeUploadFile, {
@@ -111,11 +119,34 @@ export default function ImportRecipeForm({ isOpen, onClose, onSuccess }: ImportR
     return recipe as Recipe;
   };
 
+  const validateTitleUniqueness = async (
+    title: string,
+    isGlobal: boolean
+  ): Promise<string | undefined> => {
+    if (!title.trim()) return undefined;
+
+    try {
+      const existingRecipes = await listSavedRecipes();
+      const titleExists = existingRecipes.some(
+        (recipe) =>
+          recipe.recipe.title?.toLowerCase() === title.toLowerCase() && recipe.isGlobal === isGlobal
+      );
+
+      if (titleExists) {
+        return `A recipe with the same title already exists`;
+      }
+    } catch (error) {
+      console.warn('Failed to validate title uniqueness:', error);
+    }
+
+    return undefined;
+  };
+
   const importRecipeForm = useForm({
     defaultValues: {
       deeplink: '',
       recipeUploadFile: null as File | null,
-      recipeName: '',
+      recipeTitle: '',
       global: true,
     },
     validators: {
@@ -138,6 +169,16 @@ export default function ImportRecipeForm({ isOpen, onClose, onSuccess }: ImportR
           recipe = await parseRecipeUploadFile(fileContent, value.recipeUploadFile!.name);
         }
 
+        recipe.title = value.recipeTitle.trim();
+
+        const titleValidationError = await validateTitleUniqueness(
+          value.recipeTitle.trim(),
+          value.global
+        );
+        if (titleValidationError) {
+          throw new Error(titleValidationError);
+        }
+
         const validationResult = validateRecipe(recipe);
         if (!validationResult.success) {
           const errorMessages = getValidationErrorMessages(validationResult.errors);
@@ -145,7 +186,8 @@ export default function ImportRecipeForm({ isOpen, onClose, onSuccess }: ImportR
         }
 
         await saveRecipe(recipe, {
-          name: value.recipeName.trim(),
+          name: '',
+          title: value.recipeTitle.trim(),
           global: value.global,
         });
 
@@ -153,7 +195,7 @@ export default function ImportRecipeForm({ isOpen, onClose, onSuccess }: ImportR
         importRecipeForm.reset({
           deeplink: '',
           recipeUploadFile: null,
-          recipeName: '',
+          recipeTitle: '',
           global: true,
         });
         onClose();
@@ -161,7 +203,7 @@ export default function ImportRecipeForm({ isOpen, onClose, onSuccess }: ImportR
         onSuccess();
 
         toastSuccess({
-          title: value.recipeName.trim(),
+          title: value.recipeTitle.trim(),
           msg: 'Recipe imported successfully',
         });
       } catch (error) {
@@ -183,16 +225,16 @@ export default function ImportRecipeForm({ isOpen, onClose, onSuccess }: ImportR
     importRecipeForm.reset({
       deeplink: '',
       recipeUploadFile: null,
-      recipeName: '',
+      recipeTitle: '',
       global: true,
     });
     onClose();
   };
 
-  // Store reference to recipe name field for programmatic updates
-  let recipeNameFieldRef: { handleChange: (value: string) => void } | null = null;
+  // Store reference to recipe title field for programmatic updates
+  let recipeTitleFieldRef: { handleChange: (value: string) => void } | null = null;
 
-  // Auto-generate recipe name when deeplink changes
+  // Auto-populate recipe title when deeplink changes
   const handleDeeplinkChange = async (
     value: string,
     field: { handleChange: (value: string) => void }
@@ -204,13 +246,11 @@ export default function ImportRecipeForm({ isOpen, onClose, onSuccess }: ImportR
       try {
         const recipe = await parseDeeplink(value.trim());
         if (recipe && recipe.title) {
-          const suggestedName = generateRecipeNameFromTitle(recipe.title);
-
-          // Use the recipe name field's handleChange method if available
-          if (recipeNameFieldRef) {
-            recipeNameFieldRef.handleChange(suggestedName);
+          // Use the recipe title field's handleChange method if available
+          if (recipeTitleFieldRef) {
+            recipeTitleFieldRef.handleChange(recipe.title);
           } else {
-            importRecipeForm.setFieldValue('recipeName', suggestedName);
+            importRecipeForm.setFieldValue('recipeTitle', recipe.title);
           }
         }
       } catch (error) {
@@ -218,11 +258,11 @@ export default function ImportRecipeForm({ isOpen, onClose, onSuccess }: ImportR
         console.log('Could not parse deeplink for auto-suggest:', error);
       }
     } else {
-      // Clear the recipe name when deeplink is empty
-      if (recipeNameFieldRef) {
-        recipeNameFieldRef.handleChange('');
+      // Clear the recipe title when deeplink is empty
+      if (recipeTitleFieldRef) {
+        recipeTitleFieldRef.handleChange('');
       } else {
-        importRecipeForm.setFieldValue('recipeName', '');
+        importRecipeForm.setFieldValue('recipeTitle', '');
       }
     }
   };
@@ -235,13 +275,11 @@ export default function ImportRecipeForm({ isOpen, onClose, onSuccess }: ImportR
         const fileContent = await file.text();
         const recipe = await parseRecipeUploadFile(fileContent, file.name);
         if (recipe.title) {
-          const suggestedName = generateRecipeNameFromTitle(recipe.title);
-
-          // Use the recipe name field's handleChange method if available
-          if (recipeNameFieldRef) {
-            recipeNameFieldRef.handleChange(suggestedName);
+          // Use the recipe title field's handleChange method if available
+          if (recipeTitleFieldRef) {
+            recipeTitleFieldRef.handleChange(recipe.title);
           } else {
-            importRecipeForm.setFieldValue('recipeName', suggestedName);
+            importRecipeForm.setFieldValue('recipeTitle', recipe.title);
           }
         }
       } catch (error) {
@@ -249,11 +287,11 @@ export default function ImportRecipeForm({ isOpen, onClose, onSuccess }: ImportR
         console.log('Could not parse recipe file for auto-suggest:', error);
       }
     } else {
-      // Clear the recipe name when file is removed
-      if (recipeNameFieldRef) {
-        recipeNameFieldRef.handleChange('');
+      // Clear the recipe title when file is removed
+      if (recipeTitleFieldRef) {
+        recipeTitleFieldRef.handleChange('');
       } else {
-        importRecipeForm.setFieldValue('recipeName', '');
+        importRecipeForm.setFieldValue('recipeTitle', '');
       }
     }
   };
@@ -397,14 +435,14 @@ export default function ImportRecipeForm({ isOpen, onClose, onSuccess }: ImportR
                 interface.
               </p>
 
-              <importRecipeForm.Field name="recipeName">
+              <importRecipeForm.Field name="recipeTitle">
                 {(field) => {
                   // Store reference to the field for programmatic updates
-                  recipeNameFieldRef = field;
+                  recipeTitleFieldRef = field;
 
                   return (
-                    <RecipeNameField
-                      id="import-recipe-name"
+                    <RecipeTitleField
+                      id="import-recipe-title"
                       value={field.state.value}
                       onChange={field.handleChange}
                       onBlur={field.handleBlur}
@@ -491,7 +529,7 @@ export default function ImportRecipeForm({ isOpen, onClose, onSuccess }: ImportR
             </div>
             <div className="flex-1 overflow-auto">
               <p className="font-medium mb-3 text-text-standard">Expected Recipe Structure:</p>
-              <pre className="text-xs bg-gray-100 p-4 rounded overflow-auto whitespace-pre font-mono">
+              <pre className="text-xs bg-gray-800 p-4 rounded overflow-auto whitespace-pre font-mono">
                 {JSON.stringify(getRecipeJsonSchema(), null, 2)}
               </pre>
               <p className="mt-4 text-blue-700 text-sm">
