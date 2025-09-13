@@ -31,6 +31,7 @@ use tokio::{
 };
 use tokio_stream::{wrappers::SplitStream, StreamExt as _};
 
+use super::analyze::{types::AnalyzeParams, CodeAnalyzer};
 use super::editor_models::{create_editor_model, EditorModel};
 use super::goose_hints::load_hints::{load_hint_files, GOOSE_HINTS_FILENAME};
 use super::shell::{expand_path, get_shell_config, is_absolute_path};
@@ -164,13 +165,14 @@ fn load_prompt_files() -> HashMap<String, Prompt> {
 }
 
 /// Developer MCP Server using official RMCP SDK
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct DeveloperServer {
     tool_router: ToolRouter<Self>,
     file_history: Arc<Mutex<HashMap<PathBuf, Vec<String>>>>,
     ignore_patterns: Gitignore,
     editor_model: Option<EditorModel>,
     prompts: HashMap<String, Prompt>,
+    code_analyzer: CodeAnalyzer,
 }
 
 #[tool_handler(router = self.tool_router)]
@@ -192,6 +194,9 @@ impl ServerHandler for DeveloperServer {
 
                 Use the shell tool as needed to locate files or interact with the project.
 
+                Leverage `analyze` through `return_last_only=true` subagents for deep codebase understanding with lean context
+                - delegate analysis, retain summaries
+
                 Your windows/screen tools can be used for visual debugging. You should not use these tools unless
                 prompted to, but you can mention they are available if they are relevant.
 
@@ -210,8 +215,13 @@ impl ServerHandler for DeveloperServer {
             You can use the shell tool to run any command that would work on the relevant operating system.
             Use the shell tool as needed to locate files or interact with the project.
 
+            Leverage `analyze` through `return_last_only=true` subagents for deep codebase understanding with lean context
+            - delegate analysis, retain summaries
+
             Your windows/screen tools can be used for visual debugging. You should not use these tools unless
             prompted to, but you can mention they are available if they are relevant.
+
+            Always prefer ripgrep (rg -C 3) to grep.
 
             operating system: {os}
             current directory: {cwd}
@@ -516,6 +526,7 @@ impl DeveloperServer {
             ignore_patterns,
             editor_model,
             prompts: load_prompt_files(),
+            code_analyzer: CodeAnalyzer::new(),
         }
     }
 
@@ -1002,6 +1013,31 @@ impl DeveloperServer {
         Ok(())
     }
 
+    /// Analyze code structure and relationships.
+    ///
+    /// Automatically selects the appropriate analysis:
+    /// - Files: Semantic analysis with call graphs
+    /// - Directories: Structure overview with metrics
+    /// - With focus parameter: Track symbol across files
+    ///
+    /// Examples:
+    /// analyze(path="file.py") -> semantic analysis
+    /// analyze(path="src/") -> structure overview down to max_depth subdirs
+    /// analyze(path="src/", focus="main") -> track main() across files in src/ down to max_depth subdirs
+    #[tool(
+        name = "analyze",
+        description = "Analyze code structure in 3 modes: 1) Directory overview - file tree with LOC/function/class counts to max_depth. 2) File details - functions, classes, imports. 3) Symbol focus - call graphs across directory to max_depth (requires directory path, case-sensitive). Typical flow: directory → files → symbols. Functions called >3x show •N."
+    )]
+    pub async fn analyze(
+        &self,
+        params: Parameters<AnalyzeParams>,
+    ) -> Result<CallToolResult, ErrorData> {
+        let params = params.0;
+        let path = self.resolve_path(&params.path)?;
+        self.code_analyzer
+            .analyze(params, path, &self.ignore_patterns)
+    }
+
     /// Process an image file from disk.
     ///
     /// The image will be:
@@ -1366,6 +1402,7 @@ mod tests {
             let running_service = serve_directly(server.clone(), create_test_transport(), None);
             let peer = running_service.peer().clone();
 
+            // Test directly on the server instead of using peer.call_tool
             let result = server
                 .shell(
                     Parameters(ShellParams {
