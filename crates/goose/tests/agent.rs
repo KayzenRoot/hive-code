@@ -236,6 +236,16 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_agent_with_anthropic() -> Result<()> {
+        run_test_with_config(TestConfig {
+            provider_type: ProviderType::Anthropic,
+            model: "claude-sonnet-4",
+            context_window: 200_000,
+        })
+        .await
+    }
+
+    #[tokio::test]
     async fn test_agent_with_azure() -> Result<()> {
         run_test_with_config(TestConfig {
             provider_type: ProviderType::Azure,
