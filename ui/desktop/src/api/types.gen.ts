@@ -72,18 +72,10 @@ export type ConfigResponse = {
 
 export type Content = RawTextContent | RawImageContent | RawEmbeddedResource | RawAudioContent | RawResource;
 
-export type ContextLengthExceeded = {
-    msg: string;
-};
-
 /**
  * Request payload for context management operations
  */
 export type ContextManageRequest = {
-    /**
-     * Operation to perform: "truncation" or "summarize"
-     */
-    manageAction: string;
     /**
      * Collection of messages to be managed
      */
@@ -109,6 +101,10 @@ export type ContextManageResponse = {
 };
 
 export type Conversation = Array<Message>;
+
+export type ConversationCompacted = {
+    msg: string;
+};
 
 export type CreateRecipeRequest = {
     author?: AuthorRequest | null;
@@ -383,9 +379,9 @@ export type LoadedProvider = {
  */
 export type Message = {
     content: Array<MessageContent>;
-    created?: number;
+    created: number;
     id?: string | null;
-    metadata?: MessageMetadata;
+    metadata: MessageMetadata;
     role: Role;
 };
 
@@ -408,10 +404,8 @@ export type MessageContent = (TextContent & {
     type: 'thinking';
 }) | (RedactedThinkingContent & {
     type: 'redactedThinking';
-}) | (ContextLengthExceeded & {
-    type: 'contextLengthExceeded';
-}) | (SummarizationRequested & {
-    type: 'summarizationRequested';
+}) | (ConversationCompacted & {
+    type: 'conversationCompacted';
 });
 
 /**
@@ -421,11 +415,11 @@ export type MessageMetadata = {
     /**
      * Whether the message should be included in the agent's context window
      */
-    agentVisible?: boolean;
+    agentVisible: boolean;
     /**
      * Whether the message should be visible to the user in the UI
      */
-    userVisible?: boolean;
+    userVisible: boolean;
 };
 
 /**
@@ -792,10 +786,6 @@ export type SuccessCheck = {
      */
     command: string;
     type: 'Shell';
-};
-
-export type SummarizationRequested = {
-    msg: string;
 };
 
 export type TextContent = {
