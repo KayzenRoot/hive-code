@@ -4,15 +4,6 @@ export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
 
-export type AddSubRecipesRequest = {
-    session_id: string;
-    sub_recipes: Array<SubRecipe>;
-};
-
-export type AddSubRecipesResponse = {
-    success: boolean;
-};
-
 export type Annotations = {
     audience?: Array<Role>;
     lastModified?: string;
@@ -178,15 +169,6 @@ export type Envs = {
 
 export type ErrorResponse = {
     message: string;
-};
-
-export type ExtendPromptRequest = {
-    extension: string;
-    session_id: string;
-};
-
-export type ExtendPromptResponse = {
-    success: boolean;
 };
 
 /**
@@ -709,11 +691,6 @@ export type Session = {
     working_dir: string;
 };
 
-export type SessionConfigRequest = {
-    response?: Response | null;
-    session_id: string;
-};
-
 export type SessionDisplayInfo = {
     accumulatedInputTokens?: number | null;
     accumulatedOutputTokens?: number | null;
@@ -874,6 +851,10 @@ export type UpdateCustomProviderRequest = {
     supports_streaming?: boolean | null;
 };
 
+export type UpdateFromSessionRequest = {
+    session_id: string;
+};
+
 export type UpdateProviderRequest = {
     model?: string | null;
     provider: string;
@@ -904,6 +885,10 @@ export type UpdateSessionUserRecipeValuesRequest = {
     };
 };
 
+export type UpdateSessionUserRecipeValuesResponse = {
+    recipe: Recipe;
+};
+
 export type UpsertConfigQuery = {
     is_secret: boolean;
     key: string;
@@ -913,60 +898,6 @@ export type UpsertConfigQuery = {
 export type UpsertPermissionsQuery = {
     tool_permissions: Array<ToolPermission>;
 };
-
-export type AddSubRecipesData = {
-    body: AddSubRecipesRequest;
-    path?: never;
-    query?: never;
-    url: '/agent/add_sub_recipes';
-};
-
-export type AddSubRecipesErrors = {
-    /**
-     * Unauthorized - invalid secret key
-     */
-    401: unknown;
-    /**
-     * Agent not initialized
-     */
-    424: unknown;
-};
-
-export type AddSubRecipesResponses = {
-    /**
-     * Added sub recipes to agent successfully
-     */
-    200: AddSubRecipesResponse;
-};
-
-export type AddSubRecipesResponse2 = AddSubRecipesResponses[keyof AddSubRecipesResponses];
-
-export type ExtendPromptData = {
-    body: ExtendPromptRequest;
-    path?: never;
-    query?: never;
-    url: '/agent/prompt';
-};
-
-export type ExtendPromptErrors = {
-    /**
-     * Unauthorized - invalid secret key
-     */
-    401: unknown;
-    /**
-     * Agent not initialized
-     */
-    424: unknown;
-};
-
-export type ExtendPromptResponses = {
-    /**
-     * Extended system prompt successfully
-     */
-    200: ExtendPromptResponse;
-};
-
-export type ExtendPromptResponse2 = ExtendPromptResponses[keyof ExtendPromptResponses];
 
 export type ResumeAgentData = {
     body: ResumeAgentRequest;
@@ -998,37 +929,6 @@ export type ResumeAgentResponses = {
 };
 
 export type ResumeAgentResponse = ResumeAgentResponses[keyof ResumeAgentResponses];
-
-export type UpdateSessionConfigData = {
-    body: SessionConfigRequest;
-    path?: never;
-    query?: never;
-    url: '/agent/session_config';
-};
-
-export type UpdateSessionConfigErrors = {
-    /**
-     * Unauthorized - invalid secret key
-     */
-    401: unknown;
-    /**
-     * Agent not initialized
-     */
-    424: unknown;
-    /**
-     * Internal server error
-     */
-    500: unknown;
-};
-
-export type UpdateSessionConfigResponses = {
-    /**
-     * Session config updated successfully
-     */
-    200: string;
-};
-
-export type UpdateSessionConfigResponse = UpdateSessionConfigResponses[keyof UpdateSessionConfigResponses];
 
 export type StartAgentData = {
     body: StartAgentRequest;
@@ -1102,6 +1002,31 @@ export type GetToolsResponses = {
 };
 
 export type GetToolsResponse = GetToolsResponses[keyof GetToolsResponses];
+
+export type UpdateFromSessionData = {
+    body: UpdateFromSessionRequest;
+    path?: never;
+    query?: never;
+    url: '/agent/update_from_session';
+};
+
+export type UpdateFromSessionErrors = {
+    /**
+     * Unauthorized - invalid secret key
+     */
+    401: unknown;
+    /**
+     * Agent not initialized
+     */
+    424: unknown;
+};
+
+export type UpdateFromSessionResponses = {
+    /**
+     * Update agent from session data successfully
+     */
+    200: unknown;
+};
 
 export type UpdateAgentProviderData = {
     body: UpdateProviderRequest;
@@ -2487,19 +2412,23 @@ export type UpdateSessionUserRecipeValuesErrors = {
     /**
      * Session not found
      */
-    404: unknown;
+    404: ErrorResponse;
     /**
      * Internal server error
      */
-    500: unknown;
+    500: ErrorResponse;
 };
+
+export type UpdateSessionUserRecipeValuesError = UpdateSessionUserRecipeValuesErrors[keyof UpdateSessionUserRecipeValuesErrors];
 
 export type UpdateSessionUserRecipeValuesResponses = {
     /**
      * Session user recipe values updated successfully
      */
-    200: unknown;
+    200: UpdateSessionUserRecipeValuesResponse;
 };
+
+export type UpdateSessionUserRecipeValuesResponse2 = UpdateSessionUserRecipeValuesResponses[keyof UpdateSessionUserRecipeValuesResponses];
 
 export type StatusData = {
     body?: never;
