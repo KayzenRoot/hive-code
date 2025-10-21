@@ -3,7 +3,7 @@ use axum::http::{HeaderMap, HeaderName};
 use chrono::{DateTime, Utc};
 use futures::stream::{FuturesUnordered, StreamExt};
 use futures::{future, FutureExt};
-use rmcp::service::ClientInitializeError;
+use rmcp::service::{ClientInitializeError, ServiceError};
 use rmcp::transport::streamable_http_client::{
     AuthRequiredError, StreamableHttpClientTransportConfig, StreamableHttpError,
 };
@@ -40,6 +40,7 @@ use rmcp::model::{
     ServerInfo, Tool,
 };
 use rmcp::transport::auth::AuthClient;
+use schemars::_private::NoSerialize;
 use serde_json::Value;
 
 type McpClientBox = Arc<Mutex<Box<dyn McpClientTrait>>>;
@@ -937,7 +938,12 @@ impl ExtensionManager {
                 .call_tool(&tool_name, arguments, cancellation_token)
                 .await
                 .map(|call| call.content)
-                .map_err(|e| ErrorData::new(ErrorCode::INTERNAL_ERROR, e.to_string(), None))
+                .map_err(|e| match e {
+                    ServiceError::McpError(error_data) => error_data,
+                    _ => {
+                        ErrorData::new(ErrorCode::INTERNAL_ERROR, e.to_string(), e.maybe_to_value())
+                    }
+                })
         };
 
         Ok(ToolCallResult {
