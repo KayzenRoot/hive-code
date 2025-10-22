@@ -19,7 +19,6 @@ import { WaveformVisualizer } from './WaveformVisualizer';
 import { toastError } from '../toasts';
 import MentionPopover, { FileItemWithMatch } from './MentionPopover';
 import { useDictationSettings } from '../hooks/useDictationSettings';
-import { useContextManager } from './context_management/ContextManager';
 import { useChatContext } from '../contexts/ChatContext';
 import { COST_TRACKING_ENABLED, VOICE_DICTATION_ELEVENLABS_ENABLED } from '../updates';
 import { CostTracker } from './bottom_menu/CostTracker';
@@ -52,6 +51,9 @@ const MAX_IMAGE_SIZE_MB = 5;
 const TOKEN_LIMIT_DEFAULT = 128000; // fallback for custom models that the backend doesn't know about
 const TOOLS_MAX_SUGGESTED = 60; // max number of tools before we show a warning
 
+// Manual compact trigger message - must match backend constant
+const MANUAL_COMPACT_TRIGGER = 'Please compact this conversation';
+
 interface ModelLimit {
   pattern: string;
   context_limit: number;
@@ -71,7 +73,6 @@ interface ChatInputProps {
   inputTokens?: number;
   outputTokens?: number;
   messages?: Message[];
-  setMessages: (messages: Message[]) => void;
   sessionCosts?: {
     [key: string]: {
       inputTokens: number;
@@ -105,7 +106,6 @@ export default function ChatInput({
   inputTokens,
   outputTokens,
   messages = [],
-  setMessages,
   disableAnimation = false,
   sessionCosts,
   setIsGoosehintsModalOpen,
@@ -115,7 +115,7 @@ export default function ChatInput({
   initialPrompt,
   toolCount,
   autoSubmit = false,
-  append,
+  append: _append,
   isExtensionsLoading = false,
 }: ChatInputProps) {
   const [_value, setValue] = useState(initialValue);
@@ -137,7 +137,6 @@ export default function ChatInput({
   const dropdownRef: React.RefObject<HTMLDivElement> = useRef<HTMLDivElement>(
     null
   ) as React.RefObject<HTMLDivElement>;
-  const { isCompacting, handleManualCompaction } = useContextManager();
   const { getProviders, read } = useConfig();
   const { getCurrentModelAndProvider, currentModel, currentProvider } = useModelAndProvider();
   const [tokenLimit, setTokenLimit] = useState<number>(TOKEN_LIMIT_DEFAULT);
@@ -523,9 +522,6 @@ export default function ChatInput({
 
     // Show alert when either there is registered token usage, or we know the limit
     if ((numTokens && numTokens > 0) || (isTokenLimitLoaded && tokenLimit)) {
-      // in these conditions we want it to be present but disabled
-      const compactButtonDisabled = !numTokens || isCompacting;
-
       addAlert({
         type: AlertType.Info,
         message: 'Context window',
@@ -534,12 +530,15 @@ export default function ChatInput({
           total: tokenLimit,
         },
         showCompactButton: true,
-        compactButtonDisabled,
+        compactButtonDisabled: !numTokens,
         onCompact: () => {
-          // Hide the alert popup by dispatching a custom event that the popover can listen to
-          // Importantly, this leaves the alert so the dot still shows up, but hides the popover
           window.dispatchEvent(new CustomEvent('hide-alert-popover'));
-          handleManualCompaction(messages, setMessages, append, sessionId || '');
+
+          const customEvent = new CustomEvent('submit', {
+            detail: { value: MANUAL_COMPACT_TRIGGER },
+          }) as unknown as React.FormEvent;
+
+          handleSubmit(customEvent);
         },
         compactIcon: <ScrollText size={12} />,
         autoCompactThreshold: autoCompactThreshold,
@@ -569,7 +568,6 @@ export default function ChatInput({
     tokenLimit,
     isTokenLimitLoaded,
     addAlert,
-    isCompacting,
     clearAlerts,
     autoCompactThreshold,
   ]);
@@ -940,7 +938,6 @@ export default function ChatInput({
 
   const canSubmit =
     !isLoading &&
-    !isCompacting &&
     agentIsReady &&
     (displayValue.trim() ||
       pastedImages.some((img) => img.filePath && !img.error && !img.isLoading) ||
@@ -1097,7 +1094,6 @@ export default function ChatInput({
     e.preventDefault();
     const canSubmit =
       !isLoading &&
-      !isCompacting &&
       agentIsReady &&
       (displayValue.trim() ||
         pastedImages.some((img) => img.filePath && !img.error && !img.isLoading) ||
@@ -1152,7 +1148,6 @@ export default function ChatInput({
     isAnyDroppedFileLoading ||
     isRecording ||
     isTranscribing ||
-    isCompacting ||
     !agentIsReady ||
     isExtensionsLoading;
 
@@ -1397,17 +1392,15 @@ export default function ChatInput({
                 <p>
                   {isExtensionsLoading
                     ? 'Loading extensions...'
-                    : isCompacting
-                      ? 'Compacting conversation...'
-                      : isAnyImageLoading
-                        ? 'Waiting for images to save...'
-                        : isAnyDroppedFileLoading
-                          ? 'Processing dropped files...'
-                          : isRecording
-                            ? 'Recording...'
-                            : isTranscribing
-                              ? 'Transcribing...'
-                              : (chatContext?.agentWaitingMessage ?? 'Send')}
+                    : isAnyImageLoading
+                      ? 'Waiting for images to save...'
+                      : isAnyDroppedFileLoading
+                        ? 'Processing dropped files...'
+                        : isRecording
+                          ? 'Recording...'
+                          : isTranscribing
+                            ? 'Transcribing...'
+                            : (chatContext?.agentWaitingMessage ?? 'Send')}
                 </p>
               </TooltipContent>
             </Tooltip>

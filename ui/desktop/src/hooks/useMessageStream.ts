@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useReducer, useRef, useState } from 'react';
 import useSWR from 'swr';
-import { createUserMessage, hasCompletedToolCalls } from '../types/message';
+import { createUserMessage, getThinkingMessage, hasCompletedToolCalls } from '../types/message';
 import { Conversation, Message, Role } from '../api';
 
 import { getSession, Session } from '../api';
@@ -305,6 +305,10 @@ export function useMessageStream({
 
                     if (hasToolConfirmation) {
                       mutateChatState(ChatState.WaitingForUserInput);
+                    }
+
+                    if (getThinkingMessage(newMessage)) {
+                      mutateChatState(ChatState.Thinking);
                     }
 
                     mutate(currentMessages, false);
