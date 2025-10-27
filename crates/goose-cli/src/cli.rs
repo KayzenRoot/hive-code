@@ -77,10 +77,19 @@ async fn get_or_create_session_id(
     }
 
     let Some(id) = identifier else {
-        let session =
-            SessionManager::create_session(std::env::current_dir()?, "CLI Session".to_string())
-                .await?;
-        return Ok(Some(session.id));
+        if resume {
+            let sessions = SessionManager::list_sessions().await?;
+            let session_id = sessions
+                .first()
+                .map(|s| s.id.clone())
+                .ok_or_else(|| anyhow::anyhow!("No session found to resume"))?;
+            return Ok(Some(session_id));
+        } else {
+            let session =
+                SessionManager::create_session(std::env::current_dir()?, "CLI Session".to_string())
+                    .await?;
+            return Ok(Some(session.id));
+        }
     };
 
     if let Some(session_id) = id.session_id {
