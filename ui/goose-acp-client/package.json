@@ -1,7 +1,7 @@
 {
-  "name": "@aaif/goose-sdk",
-  "version": "0.20.2",
-  "description": "Agent Client Protocol (ACP) SDK for Goose AI agent",
+  "name": "@aaif/goose-acp-client",
+  "version": "1.49.0",
+  "description": "TypeScript client library for Goose over Agent Client Protocol (ACP)",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -21,10 +21,6 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    },
-    "./node": {
-      "types": "./dist/resolve-binary.d.ts",
-      "default": "./dist/resolve-binary.js"
     }
   },
   "files": [
@@ -33,12 +29,10 @@
   "scripts": {
     "build": "npm run generate && npm run build:ts",
     "build:ts": "tsc",
-    "build:native": "tsx scripts/build-native.ts",
-    "build:native:all": "tsx scripts/build-native.ts --all",
     "generate": "tsx generate-schema.ts",
     "lint": "tsc --noEmit",
-    "format": "prettier --write src/",
-    "check:compat": "node scripts/check-binary-compat.mjs"
+    "format": "prettier --write src/ generate-schema.ts",
+    "prepack": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "^0.3.1",
@@ -47,13 +41,6 @@
   },
   "peerDependencies": {
     "@agentclientprotocol/sdk": "^1.3.0"
-  },
-  "optionalDependencies": {
-    "@aaif/goose-binary-darwin-arm64": "workspace:*",
-    "@aaif/goose-binary-darwin-x64": "workspace:*",
-    "@aaif/goose-binary-linux-arm64": "workspace:*",
-    "@aaif/goose-binary-linux-x64": "workspace:*",
-    "@aaif/goose-binary-win32-x64": "workspace:*"
   },
   "devDependencies": {
     "@agentclientprotocol/sdk": "1.3.0",
