@@ -1428,6 +1428,8 @@ impl CliSession {
         )
         .await?;
 
+        output::emit_attention_bell();
+
         match planner_response_type {
             PlannerResponseType::Plan => {
                 println!();
@@ -1808,6 +1810,10 @@ impl CliSession {
             if self.stats {
                 print_run_stats(run_started, first_token_at, last_usage.as_ref());
             }
+        }
+
+        if interactive {
+            output::emit_attention_bell();
         }
 
         Ok(())
@@ -2334,6 +2340,7 @@ fn emit_stream_event(event: &StreamEvent) {
 /// Prompt user for tool call confirmation, returns the Permission selected
 fn prompt_tool_confirmation(request: &ToolConfirmationRequest) -> Result<Permission> {
     output::hide_thinking();
+    output::emit_attention_bell();
 
     output::render_tool_confirmation(
         &request.tool_name,

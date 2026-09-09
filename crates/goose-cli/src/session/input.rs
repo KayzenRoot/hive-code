@@ -471,7 +471,8 @@ Navigation:
 Enter - Send message
 Ctrl+{newline_key} - Add a newline (configurable via GOOSE_CLI_NEWLINE_KEY)
 Ctrl+C - Clear current line if text is entered, otherwise exit the session
-Up/Down arrows - Navigate through command history"
+Up/Down arrows - Navigate through command history
+GOOSE_CLI_BELL=true - Ring the terminal bell when goose finishes a turn or needs approval"
     )
 }
 
