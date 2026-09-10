@@ -5385,7 +5385,7 @@ version = "0.1.0-alpha.9"
 dependencies = [
  "anyhow",
  "async-trait",
- "goose-providers",
+ "goose-provider-types",
  "include_dir",
  "minijinja",
  "rmcp 3.2.0",
