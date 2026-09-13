@@ -1,0 +1,23 @@
+name: Bootstrap Goose Import PR
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  mirror-goose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Mirror aaif-goose/goose into Hive Code
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git clone --mirror https://github.com/aaif-goose/goose.git goose.git
+          cd goose.git
+          git remote set-url --push origin "https://x-access-token:${GH_TOKEN}@github.com/KayzenRoot/hive-code.git"
+          git push --mirror --force origin
