@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import json
 from pathlib import Path
 
 # CI-only hygiene: remove imports/helpers made obsolete by the stabilization patches.
@@ -23,4 +24,19 @@ if start != -1:
     text = text[:start] + text[end + 3:]
 agent_test.write_text(text)
 
-print("wave 11 Rust CI hygiene applied")
+# Keep locale key parity fail-closed. We intentionally use the canonical English
+# message as a fallback for untranslated locales instead of inventing translations.
+messages_dir = Path("ui/desktop/src/i18n/messages")
+key = "alertBox.autoCompactOff"
+fallback = {"defaultMessage": "Auto compact: off"}
+for locale_file in sorted(messages_dir.glob("*.json")):
+    if locale_file.name == "en.json":
+        continue
+    data = json.loads(locale_file.read_text())
+    if key not in data:
+        data[key] = fallback.copy()
+        locale_file.write_text(
+            json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+        )
+
+print("wave 11 Rust and locale CI hygiene applied")
