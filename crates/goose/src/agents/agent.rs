@@ -246,7 +246,7 @@ impl AgentConfig {
             goose_platform,
             mcp_host_info: None,
             elicitation_handler: None,
-            mcp_protocol_version: Some(ProtocolVersion::V_2025_11_25),
+            mcp_protocol_version: None,
             session_name_update_tx: None,
             use_login_shell_path: None,
             is_subagent: false,
@@ -1837,9 +1837,13 @@ impl Agent {
             .as_ref()
             .ok_or_else(|| anyhow!("Session {} has no conversation", session_config.id))?;
         let pending_confirmations = pending_tool_confirmations(conversation);
-        let resume_from_persisted_response = pending_confirmations.is_empty()
-            && has_unapplied_tool_confirmation_response(conversation);
-        if pending_confirmations.is_empty() && !resume_from_persisted_response {
+        if pending_confirmations.is_empty() {
+            if has_unapplied_tool_confirmation_response(conversation) {
+                warn!(
+                    session_id = %session_config.id,
+                    "Refusing to auto-resume a persisted tool approval without a durable ToolResponse; execution state is ambiguous after interruption"
+                );
+            }
             return Ok(None);
         }
 
@@ -1853,23 +1857,11 @@ impl Agent {
 
         let agent = Arc::clone(self);
         Ok(Some(Box::pin(async_stream::try_stream! {
-            let initial_stream = if resume_from_persisted_response {
-                Some(
-                    agent
-                        .stream_state_machine_session(
-                            session_config.clone(),
-                            cancel.clone(),
-                        )
-                        .await?,
-                )
-            } else {
-                None
-            };
             let mut stream = agent.stream_state_machine_turn(
                 session_config,
                 cancel,
                 turn_guard,
-                initial_stream,
+                None,
             );
             while let Some(event) = stream.next().await {
                 yield event?;
