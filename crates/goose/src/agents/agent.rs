@@ -2740,13 +2740,8 @@ impl Agent {
                                     match content {
                                         MessageContent::Text(text) => !text.text.is_empty(),
                                         MessageContent::Image(image) => !image.data.is_empty(),
-                                        MessageContent::Thinking(thinking) => {
-                                            !thinking.thinking.is_empty()
-                                                || !thinking.signature.is_empty()
-                                        }
-                                        MessageContent::RedactedThinking(thinking) => {
-                                            !thinking.data.is_empty()
-                                        }
+                                        MessageContent::Thinking(_) => false,
+                                        MessageContent::RedactedThinking(_) => false,
                                         MessageContent::SystemNotification(notification) => {
                                             !notification.msg.is_empty()
                                         }
@@ -3448,7 +3443,9 @@ impl Agent {
                                         last_assistant_text = EMPTY_TURN_MESSAGE.to_string();
                                         let message = push_message_with_id(
                                             &mut messages_to_add,
-                                            Message::assistant().with_text(EMPTY_TURN_MESSAGE),
+                                            Message::assistant()
+                                                .with_text(EMPTY_TURN_MESSAGE)
+                                                .with_visibility(true, false),
                                         );
                                         yield AgentEvent::Message(message);
                                         exit_chat = true;
