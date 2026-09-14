@@ -269,7 +269,8 @@ impl Recipe {
         }
     }
 
-    /// Returns true if harmful content is detected in instructions, prompt, or activities fields
+    /// Returns true when a recipe contains content or executable surfaces that require
+    /// an explicit trust decision before execution.
     pub fn check_for_security_warnings(&self) -> bool {
         if [self.instructions.as_deref(), self.prompt.as_deref()]
             .iter()
@@ -279,10 +280,26 @@ impl Recipe {
             return true;
         }
 
-        if let Some(activities) = &self.activities {
-            return activities
+        if self
+            .activities
+            .as_ref()
+            .is_some_and(|activities| activities.iter().any(|activity| contains_unicode_tags(activity)))
+        {
+            return true;
+        }
+
+        if self.extensions.as_ref().is_some_and(|extensions| {
+            extensions
                 .iter()
-                .any(|activity| contains_unicode_tags(activity));
+                .any(|extension| matches!(extension, ExtensionConfig::Stdio { .. }))
+        }) {
+            return true;
+        }
+
+        if self.retry.as_ref().is_some_and(|retry| {
+            !retry.checks.is_empty() || retry.on_failure.as_ref().is_some_and(|command| !command.trim().is_empty())
+        }) {
+            return true;
         }
 
         false
@@ -435,6 +452,42 @@ impl RecipeBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn security_scan_flags_stdio_extensions() {
+        let recipe = Recipe::from_content(
+            r#"version: "1.0.0"
+title: test
+description: test
+prompt: hello
+extensions:
+  - type: stdio
+    name: local-tool
+    cmd: echo
+    args: [hello]
+"#,
+        )
+        .unwrap();
+        assert!(recipe.check_for_security_warnings());
+    }
+
+    #[test]
+    fn security_scan_flags_retry_shell_commands() {
+        let recipe = Recipe::from_content(
+            r#"version: "1.0.0"
+title: test
+description: test
+prompt: hello
+retry:
+  max_retries: 1
+  checks:
+    - type: Shell
+      command: echo ok
+"#,
+        )
+        .unwrap();
+        assert!(recipe.check_for_security_warnings());
+    }
 
     #[test]
     fn test_from_content_with_json() {

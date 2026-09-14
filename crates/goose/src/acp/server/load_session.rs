@@ -421,7 +421,7 @@ impl GooseAcpAgent {
         resume_saved_provider_session(&provider, session.conversation.as_ref()).await;
         session = self
             .session_manager
-            .get_session(&session_id_str, false)
+            .get_session(&session_id_str, true)
             .await
             .internal_err_ctx("Failed to reload session")?;
 
