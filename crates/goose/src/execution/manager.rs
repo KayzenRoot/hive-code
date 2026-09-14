@@ -261,10 +261,14 @@ impl AgentManager {
         }
 
         if agent.provider().await.is_err() {
+            // A failed persisted-provider restore must never poison the LRU with
+            // an unusable agent. Provider-less sessions, however, are valid:
+            // callers may create an agent before selecting a provider, and the
+            // long-standing manager tests rely on that lifecycle. Only the
+            // failed-restore case is fail-closed here.
             if let Some(error) = provider_restore_error {
                 return Err(error);
             }
-            anyhow::bail!("Provider not set for session {session_id}");
         }
 
         let mut sessions = self.sessions.write().await;
