@@ -28,6 +28,7 @@ use goose_test_support::{ExpectedSessionId, TEST_MODEL};
 use std::collections::VecDeque;
 use std::future::Future;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, LazyLock, Mutex};
 use tokio::task::JoinHandle;
 use tokio_util::compat::{TokioAsyncReadCompatExt, TokioAsyncWriteCompatExt};
@@ -215,6 +216,11 @@ pub struct OpenAiFixture {
     queue: Arc<Mutex<VecDeque<(String, &'static str)>>>,
 }
 
+// Tool-call id baked into the canned stream. Real providers issue a unique id per tool call,
+// so the fixture rewrites it for every served response; reusing one id would collide with the
+// per-session anti-replay tombstone when a test replays prompts through the same agent.
+const CANNED_TOOL_CALL_ID: &str = "call_eLXEeL8ZQBgXACKp78eNmyNp";
+
 impl OpenAiFixture {
     /// Mock OpenAI streaming endpoint. Exchanges are (pattern, response) pairs.
     /// On mismatch, returns 417 of the diff in OpenAI error format.
@@ -241,6 +247,7 @@ impl OpenAiFixture {
             .respond_with({
                 let queue = queue.clone();
                 let expected_session_id = expected_session_id.clone();
+                let tool_call_counter = Arc::new(AtomicUsize::new(0));
                 move |req: &wiremock::Request| {
                     let body = std::str::from_utf8(&req.body).unwrap_or("");
 
@@ -260,6 +267,13 @@ impl OpenAiFixture {
                     let (expected_body, response) = q.front().cloned().unwrap_or_default();
                     if !expected_body.is_empty() && body.contains(&expected_body) {
                         q.pop_front();
+                        let response = response.replace(
+                            CANNED_TOOL_CALL_ID,
+                            &format!(
+                                "call_fixture_{}",
+                                tool_call_counter.fetch_add(1, Ordering::Relaxed)
+                            ),
+                        );
                         return ResponseTemplate::new(200)
                             .insert_header("content-type", "text/event-stream")
                             .set_body_string(response);
