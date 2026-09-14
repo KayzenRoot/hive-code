@@ -1,0 +1,45 @@
+name: Stabilization Wave 6
+
+on:
+  push:
+    branches:
+      - hivecode/wo-0002c-stabilization
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ !contains(github.event.head_commit.message, '[wave6-applied]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hivecode/wo-0002c-stabilization
+          fetch-depth: 0
+      - name: Apply recipe trust-boundary correction
+        run: python3 scripts/stabilization_wave6.py
+      - name: Format Rust
+        run: cargo fmt --all
+      - name: Core recipe security tests
+        run: cargo test -p goose security_scan_flags --locked
+      - name: CLI recipe trust tests
+        run: cargo test -p goose-cli executable_recipe_fails_closed_in_quiet_mode --locked
+      - name: CLI sub-recipe hidden-content test
+        run: cargo test -p goose-cli hidden_content_in_subrecipe_is_rejected --locked
+      - name: Commit source corrections
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No source delta"
+            exit 0
+          fi
+          git config user.name "KayzenRoot"
+          git config user.email "114633702+KayzenRoot@users.noreply.github.com"
+          git add \
+            crates/goose/src/recipe/mod.rs \
+            crates/goose/src/acp/server/recipe/mod.rs \
+            crates/goose-cli/src/recipes/extract_from_cli.rs
+          git commit -m "fix(security): enforce recipe execution trust boundary [wave6-applied]"
+          git pull --rebase origin hivecode/wo-0002c-stabilization
+          git push origin HEAD:hivecode/wo-0002c-stabilization
