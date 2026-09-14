@@ -54,7 +54,11 @@ jobs:
           git add \
             crates/goose-cli/src/recipes/extract_from_cli.rs \
             crates/goose/src/agents/state_machine/tests/agent_reply.rs \
-            ui/desktop/src/i18n/messages/en.json
+            ui/desktop/src/i18n/messages/*.json
+          if git diff --cached --quiet; then
+            echo "No staged correction delta"
+            exit 0
+          fi
           git commit -m "fix(ci): restore lint and clippy gates [wave11-applied]"
           git pull --rebase origin hivecode/wo-0002c-stabilization
           git push origin HEAD:hivecode/wo-0002c-stabilization
