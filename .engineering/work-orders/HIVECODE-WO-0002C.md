@@ -4,6 +4,7 @@ MODE: CORRECT / VERIFY
 TASK_CLASS: T3
 CONTEXT_RADIUS: C4
 ASSURANCE: A0-A4
+STATUS: IN_PROGRESS
 
 ## Project
 Hive Code — `KayzenRoot/hive-code`
@@ -42,6 +43,16 @@ Stabilize the inherited Goose codebase before further branding or feature work. 
 - Streaming inactivity handling.
 - Tool-result ordering / provider formatting integrity.
 - Mandatory CI and exact-head evidence.
+
+## Corrections applied so far
+- `HC-AUD-001` PARTIAL FIX: recipe security scanning now flags stdio extensions and retry shell surfaces, with regression tests.
+- `HC-AUD-006` FIX CANDIDATE: ACP load-session reload now includes messages before pending-confirmation/state-machine-resume evaluation.
+- Wave 0 CI added: Rust format/check/clippy/tests, Desktop typecheck/unit/lint and Rust dependency audit.
+
+## Evidence state
+- First CI run confirmed checkout/toolchain setup, Rust formatting, Desktop dependency install, Desktop typecheck and Desktop unit tests before being superseded by newer branch commits.
+- Exact-head CI is being re-triggered on the current stabilization head after the first fixes.
+- Final status remains `CORRECTION_REQUIRED` until every known HIGH/CRITICAL item is resolved or explicitly proven inapplicable.
 
 ## STOP conditions
 - `BLOCKED_EVIDENCE` if automated validation cannot be established.
