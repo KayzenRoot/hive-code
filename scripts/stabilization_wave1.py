@@ -151,4 +151,55 @@ changed |= replace_exact(
     "Message::assistant()\n                                                .with_text(EMPTY_TURN_MESSAGE)\n                                                .with_visibility(true, false),",
 )
 
+# HC-AUD-011: do not cache a provider-less agent after a saved provider fails to restore.
+# Preserve the original restore failure, allow an explicitly configured default provider to
+# recover the session, and fail creation if no provider is available afterward.
+changed |= replace_exact(
+    "crates/goose/src/execution/manager.rs",
+    "        let mut extension_results = Vec::new();\n\n        if let Ok(session) = self",
+    "        let mut extension_results = Vec::new();\n        let mut provider_restore_error = None;\n\n        if let Ok(session) = self",
+)
+changed |= replace_exact(
+    "crates/goose/src/execution/manager.rs",
+    '''                if let Err(error) = agent.restore_provider_from_session(&session).await {
+                    if crate::acp::is_auth_required(&error) {
+                        return Err(error);
+                    }
+                    tracing::warn!(
+                        "Failed to restore provider for session {}: {}",
+                        session_id,
+                        error
+                    );
+                }
+''',
+    '''                if let Err(error) = agent.restore_provider_from_session(&session).await {
+                    if crate::acp::is_auth_required(&error) {
+                        return Err(error);
+                    }
+                    tracing::warn!(
+                        "Failed to restore provider for session {}: {}",
+                        session_id,
+                        error
+                    );
+                    provider_restore_error = Some(error);
+                }
+''',
+)
+changed |= replace_exact(
+    "crates/goose/src/execution/manager.rs",
+    '''        let mut sessions = self.sessions.write().await;
+        if let Some(existing) = sessions.get(session_id) {
+''',
+    '''        if agent.provider().await.is_err() {
+            if let Some(error) = provider_restore_error {
+                return Err(error);
+            }
+            anyhow::bail!("Provider not set for session {session_id}");
+        }
+
+        let mut sessions = self.sessions.write().await;
+        if let Some(existing) = sessions.get(session_id) {
+''',
+)
+
 print("stabilization patches applied" if changed else "no changes needed")
