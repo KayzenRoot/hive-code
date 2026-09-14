@@ -50,7 +50,13 @@ impl PermissionManager {
             Self::load_permission_map(&permission_path)
         } else {
             // Consolidate directory creation for re-use in global singleton or ACP.
-            fs::create_dir_all(&config_dir).expect("Failed to create config directory");
+            if let Err(error) = fs::create_dir_all(&config_dir) {
+                tracing::warn!(
+                    path = %config_dir.display(),
+                    %error,
+                    "Failed to create permission config directory; continuing with in-memory defaults"
+                );
+            }
             HashMap::new()
         };
         PermissionManager {
