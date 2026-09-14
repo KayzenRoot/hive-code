@@ -17,22 +17,19 @@ jobs:
         with:
           ref: hivecode/wo-0002c-stabilization
           fetch-depth: 0
-      - name: Apply bounded patches
-        run: python3 scripts/stabilization_wave2.py
+      - name: Apply deterministic cleanup
+        run: python3 scripts/stabilization_cleanup.py
       - name: Format Rust sources
         run: cargo fmt --all
       - name: Commit corrections when needed
         shell: bash
         run: |
           if git diff --quiet; then
-            echo "No patch delta"
+            echo "No cleanup delta"
             exit 0
           fi
           git config user.name "KayzenRoot"
           git config user.email "114633702+KayzenRoot@users.noreply.github.com"
-          git add \
-            crates/goose/src/oauth/mod.rs \
-            crates/goose/src/agents/platform_extensions/summon.rs \
-            crates/goose/src/agents/tool_confirmation_router.rs
-          git commit -m "fix(stability): apply fail-closed security corrections [stabilization-applied]"
+          git add crates/goose/src/oauth/mod.rs
+          git commit -m "fix(stability): clean temporary patch duplication [stabilization-applied]"
           git push origin HEAD:hivecode/wo-0002c-stabilization
