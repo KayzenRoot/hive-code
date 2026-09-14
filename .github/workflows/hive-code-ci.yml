@@ -77,6 +77,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - uses: rustsec/audit-check@v2
+      # Keep advisory policy in deny.toml so accepted risks remain version-controlled
+      # and auditable. This matches the upstream Goose security gate.
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          command: check advisories
