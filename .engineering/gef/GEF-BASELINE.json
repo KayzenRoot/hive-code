@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "gef-baseline-v1",
+  "gefVersion": "1.0",
+  "repository": "KayzenRoot/hive-code",
+  "repositoryId": 1369018843,
+  "defaultBranch": "main",
+  "adoptionBaseSha": "60a4e476b95aff80918f110630e422701f360897",
+  "importedGooseBaselineCommit": "e25ddce2655f8f5eaf5506df7478f8e336a18eaa",
+  "importedGooseTree": "a71b218c374093ad07ab5c698896d6b3866bebe5",
+  "projectMode": "EXISTING_PROJECT/BROWNFIELD",
+  "canonicalGefPath": ".engineering/gef",
+  "shadowAssurance": true,
+  "sourceReferences": [
+    "KayzenRoot/hive:.engineering/gef",
+    "KayzenRoot/hive-crypto-trader:docs/gef"
+  ],
+  "excludedReference": "KayzenRoot/gef-bootstrap as operational source",
+  "productMutationAuthorizedByAdoption": false
+}
