@@ -60,6 +60,7 @@ Stabilize the inherited Goose codebase before further branding or feature work. 
 - Long Rust workspace jobs have also experienced external workflow cancellation; those cancellations are not classified as source failures.
 - A bot-authored correction checkpoint produced GitHub `action_required` without jobs; this maintainer-authored checkpoint exists to trigger normal exact-head CI validation.
 - `HC-AUD-004` duplicate-side-effect protection remains unresolved: current state-machine execution still dispatches a tool before its durable response is applied. The correction requires a persisted invocation identity / execution-lease design rather than an unsafe boolean marker.
+- Wave 6 recipe trust-boundary patch is authorized for one idempotent application; its `[wave6-applied]` commit is the freeze point for subsequent exact-head validation.
 - Final status remains `CORRECTION_REQUIRED` until every known HIGH/CRITICAL item is resolved or explicitly proven inapplicable.
 
 ## STOP conditions
