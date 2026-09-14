@@ -1,48 +1,54 @@
-# AGENTS Instructions
+# Hive Code Agent Instructions
 
-goose is an AI agent framework in Rust with CLI and Electron desktop interfaces.
+Hive Code is an AI-native software-construction platform derived from an imported Goose technical baseline. The current product identity is **Hive Code**. Inherited `goose` identifiers remain where they are technical compatibility surfaces.
 
-## Contribution Workflow
+## Authority
 
-The issue is the source of truth for work intended for an upstream pull request. Track issue status on the [Goose Issues board](https://github.com/orgs/aaif-goose/projects/1).
+- Sole human maintainer/code owner: `@KayzenRoot`.
+- Canonical project governance: `.engineering/`.
+- Operational engineering model: `.engineering/gef/`.
+- External implementation contributors are not accepted by default.
+- AI agents operate under maintainer direction and do not become independent contributors or maintainers.
 
-- Before implementing an issue for a pull request, confirm that it is on the board with Status **Ready**.
-- Do not implement issues in **Inbox**, **Needs info**, or **Accepted / design**. Help resolve the issue discussion instead.
-- Read the agreed design, constraints, non-goals, and verification plan before changing code.
-- Keep the implementation within the issue's agreed scope.
-- If implementation reveals a material design change, return to the issue before continuing.
-- Every external pull request must link the Ready issue it implements and explain how the verification plan was performed.
-- Structure new issues on the matching template in `.github/ISSUE_TEMPLATE/` and set the issue type (e.g. Bug, Feature). `gh issue create` does not apply templates automatically.
+## Governed workflow
 
-Maintainer-directed work, urgent security fixes, release automation, and local or exploratory changes do not require a Ready issue.
+Use the active Work Order and current checkpoint as the source of authorized scope.
 
-## MCP Server Directory
+`ANALYZE → SOURCE CHECK → WORK ORDER → CONTEXT LOCK → SOURCE_MATCH → BOUNDED EXECUTION → TESTS/EVIDENCE → PR → HEDS DELTA AUDIT → CHECKPOINT → MERGE`
 
-goose is retiring its project-specific MCP server directory in favor of the [official MCP Registry](https://github.com/modelcontextprotocol/registry) and its `server.json` format.
+Before mutation:
 
-- Do not add new third-party servers to `documentation/static/servers.json`; these contributions are no longer accepted.
-- Direct server authors to publish to the official MCP Registry instead.
-- Treat the existing goose directory as legacy data while registry-backed discovery and installation are implemented.
-- Changes that maintain, migrate, or remove existing directory entries are allowed when they support the migration and are within an approved issue's scope.
+- confirm repository, branch, base/head and active Work Order;
+- read accepted/frozen decisions and current checkpoint;
+- stay inside the authorized patch map;
+- stop on source conflict, scope-expansion need, blocked evidence or architecture uncertainty;
+- do not silently broaden context or scope.
 
-See [Discussion #10830](https://github.com/aaif-goose/goose/discussions/10830) for the decision and migration direction.
+## Branding migration rule
 
-## GitHub Communication
+Do not perform a global `goose -> hive` rename.
 
-Write issue and pull request comments for humans, not as exhaustive work logs.
+Current product-facing copy should use **Hive Code** unless a Goose reference is required for provenance, historical accuracy or compatibility.
 
-- Lead with the conclusion or action needed.
-- Keep comments concise; do not repeat context already present in the thread.
-- Use short paragraphs or bullets, and include implementation details only when they affect a decision or review.
-- Prefer one clear summary over multiple incremental comments.
+The following inherited identifiers are compatibility-sensitive and require dedicated Work Orders before renaming:
 
-## Agent Loop Migration
+- CLI executable `goose`
+- Rust crates under `crates/goose*`
+- workspace dependency keys
+- persistent user data/config paths
+- `GOOSE_*` environment variables
+- protocol/integration identifiers
+- package coordinates and updater/release identities
+- `ui/goose-acp`
 
-We are replacing the legacy agent loop in `crates/goose/src/agents/agent.rs` with the state machine in `crates/goose/src/agents/state_machine/`. The state-machine path is enabled with `GOOSE_STATE_MACHINE=1`.
+Final logo/icon/splash/favicons and related visual assets are `UGAS_PENDING`.
 
-Until the migration is complete, changes to agent-loop behavior must be implemented and tested in both paths. When reviewing code, check whether a change to either path also applies to the other and flag missing parity.
+## Upstream provenance
+
+Preserve applicable Apache 2.0 license/copyright/notice obligations and factual historical references. Imported Goose authorship is upstream provenance, not current Hive Code team membership.
 
 ## Setup
+
 ```bash
 source bin/activate-hermit
 cargo build
@@ -52,20 +58,20 @@ cargo build
 
 ### Build
 ```bash
-cargo build                   # debug
-cargo build --release         # release  
-just release-binary           # release binary
+cargo build
+cargo build --release
+just release-binary
 ```
 
 ### Test
 ```bash
-cargo test                   # all tests
-cargo test -p goose          # specific crate
+cargo test
+cargo test -p goose
 cargo test --package goose --test mcp_integration_test
-just record-mcp-tests        # record MCP
+just record-mcp-tests
 ```
 
-### Lint/Format
+### Lint / format
 ```bash
 cargo fmt
 cargo clippy --all-targets -- -D warnings
@@ -73,63 +79,46 @@ cargo clippy --all-targets -- -D warnings
 
 ### UI
 ```bash
-just run-ui                  # start desktop
+just run-ui
 cd ui/desktop && pnpm run typecheck
-cd ui/desktop && pnpm test   # test UI
+cd ui/desktop && pnpm test
 ```
 
 ## Structure
-```
-crates/       # Rust workspace members — see root Cargo.toml (`members = ["crates/*"]`)
-ui/desktop/   # Electron app
-ui/text/      # deprecated ACP TUI (see ui/text/README.md)
-```
 
-## Development Loop
-```bash
-# 1. source bin/activate-hermit
-# 2. Make changes
-# 3. cargo fmt
+```text
+crates/       Rust workspace members
+ui/desktop/   Electron desktop app
+ui/text/      deprecated inherited ACP TUI
+.engineering/ Hive Code canonical governance and GEF contracts
 ```
 
-### Run these only if the user has asked you to build/test your changes:
-```
-# 1. cargo build
-# 2. cargo test -p <crate>
-# 3. cargo clippy --all-targets -- -D warnings
-```
+## Development rules
 
-## Rules
+- Prefer tests in the established test locations.
+- Use `anyhow::Result` where consistent with the inherited architecture.
+- Provider implementations follow the established Provider trait/contracts.
+- MCP extensions live under the inherited MCP architecture until separately migrated.
+- Desktop UI should use ACP SDK or local types as already governed by the codebase.
+- Prefer self-documenting code and comments that explain why, not what.
+- Do not add defensive optionality solely to silence the compiler.
+- Keep `Cargo.lock` consistent with dependency changes.
+- Never overwrite a live executable in place; use unlink/atomic replacement where required by platform behavior.
 
-- Test: Prefer tests/ folder, e.g. crates/goose/tests/
-- Test: When adding features, update goose-self-test.yaml, rebuild, then run `goose run --recipe goose-self-test.yaml` to validate
-- Error: Use anyhow::Result
-- Provider: Implement Provider trait see providers/base.rs
-- MCP: Extensions in crates/goose-mcp/
-- UI Desktop: Use ACP SDK types or local `src/types/*` types. Do not import generated OpenAPI types/client code from `ui/desktop/src/api`
+## Evidence rules
 
-## Code Quality
+- Executor claims are staged until tests/evidence validate them.
+- Old-head evidence is historical, not exact-head proof.
+- UNKNOWN never becomes PASS/ALLOW/HIT by assumption.
+- HIGH or CRITICAL unresolved findings block advancement.
+- Proof carry-forward requires compatible Evidence Validity Fingerprints.
 
-- Comments: Write self-documenting code - prefer clear names over comments
-- Comments: Never add comments that restate what code does
-- Comments: Only comment for complex algorithms, non-obvious business logic, or "why" not "what"
-- Simplicity: Don't make things optional that don't need to be - the compiler will enforce
-- Simplicity: Booleans should default to false, not be optional
-- Errors: Don't add error context that doesn't add useful information (e.g., `.context("Failed to X")` when error already says it failed)
-- Simplicity: Avoid overly defensive code - trust Rust's type system
-- Logging: Clean up existing logs, don't add more unless for errors or security events
+## Important entry points
 
-## Never
+These names remain inherited compatibility identifiers for now:
 
-- Never: Recreate `ui/desktop/src/api` or add `@hey-api/openapi-ts` to `ui/desktop`
-- Cargo.toml: For human-authored dependency changes, use `cargo add` instead of manually editing dependency entries unless there is a specific reason not to.
-- Cargo.toml: Automated dependency bump PRs are exempt; when manual edits are necessary, keep `Cargo.lock` consistent.
-- Never: Skip cargo fmt
-- Never: Merge without running clippy
-- Never: Comment self-evident operations (`// Initialize`, `// Return result`), getters/setters, constructors, or standard Rust idioms
-- Never: Overwrite a live binary in place (e.g. `cp`/`fs.copyFileSync` onto an existing executable) - unlink or atomic-rename the destination first, otherwise macOS SIGKILLs running processes with "Code Signature Invalid"
+- CLI: `crates/goose-cli/src/main.rs`
+- UI: `ui/desktop/src/main.ts`
+- Agent: `crates/goose/src/agents/agent.rs`
 
-## Entry Points
-- CLI: crates/goose-cli/src/main.rs
-- UI: ui/desktop/src/main.ts
-- Agent: crates/goose/src/agents/agent.rs
+Do not rename them solely for branding without an explicit technical migration Work Order.
