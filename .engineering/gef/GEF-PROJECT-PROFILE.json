@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "gef-project-profile-v1",
+  "gefVersion": "1.0",
+  "project": {
+    "name": "Hive Code",
+    "repository": "KayzenRoot/hive-code",
+    "repositoryId": 1369018843,
+    "defaultBranch": "main",
+    "mode": "EXISTING_PROJECT/BROWNFIELD"
+  },
+  "governance": {
+    "sourcePack": ".engineering",
+    "gefPath": ".engineering/gef",
+    "workOrdersPath": ".engineering/work-orders",
+    "checkpoint": ".engineering/CHECKPOINT.md",
+    "decisions": ".engineering/DECISIONS-LEDGER.md"
+  },
+  "defaults": {
+    "taskClass": "T1",
+    "contextRadius": "C1",
+    "assuranceLevel": "A2",
+    "shadowAssurance": true,
+    "retryBudget": 2,
+    "publication": "ONE_FINAL_PUBLICATION"
+  }
+}
