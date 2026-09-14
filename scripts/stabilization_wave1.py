@@ -1,0 +1,129 @@
+#!/usr/bin/env python3
+from pathlib import Path
+
+
+def replace_exact(path: str, old: str, new: str) -> bool:
+    p = Path(path)
+    text = p.read_text()
+    if old not in text:
+        if new in text:
+            return False
+        raise SystemExit(f"Expected source block not found in {path}")
+    p.write_text(text.replace(old, new, 1))
+    return True
+
+changed = False
+
+# HC-AUD-006: pending confirmations/state-machine resume must inspect a conversation-bearing session.
+changed |= replace_exact(
+    "crates/goose/src/acp/server/load_session.rs",
+    ".get_session(&session_id_str, false)\n            .await\n            .internal_err_ctx(\"Failed to reload session\")?;",
+    ".get_session(&session_id_str, true)\n            .await\n            .internal_err_ctx(\"Failed to reload session\")?;",
+)
+
+# HC-AUD-001: the recipe security scan must cover executable surfaces, not just hidden Unicode.
+old_recipe_scan = '''    /// Returns true if harmful content is detected in instructions, prompt, or activities fields
+    pub fn check_for_security_warnings(&self) -> bool {
+        if [self.instructions.as_deref(), self.prompt.as_deref()]
+            .iter()
+            .flatten()
+            .any(|&field| contains_unicode_tags(field))
+        {
+            return true;
+        }
+
+        if let Some(activities) = &self.activities {
+            return activities
+                .iter()
+                .any(|activity| contains_unicode_tags(activity));
+        }
+
+        false
+    }
+'''
+new_recipe_scan = '''    /// Returns true when a recipe contains content or executable surfaces that require
+    /// an explicit trust decision before execution.
+    pub fn check_for_security_warnings(&self) -> bool {
+        if [self.instructions.as_deref(), self.prompt.as_deref()]
+            .iter()
+            .flatten()
+            .any(|&field| contains_unicode_tags(field))
+        {
+            return true;
+        }
+
+        if self
+            .activities
+            .as_ref()
+            .is_some_and(|activities| activities.iter().any(|activity| contains_unicode_tags(activity)))
+        {
+            return true;
+        }
+
+        if self.extensions.as_ref().is_some_and(|extensions| {
+            extensions
+                .iter()
+                .any(|extension| matches!(extension, ExtensionConfig::Stdio { .. }))
+        }) {
+            return true;
+        }
+
+        if self.retry.as_ref().is_some_and(|retry| {
+            !retry.checks.is_empty() || retry.on_failure.as_ref().is_some_and(|command| !command.trim().is_empty())
+        }) {
+            return true;
+        }
+
+        false
+    }
+'''
+changed |= replace_exact("crates/goose/src/recipe/mod.rs", old_recipe_scan, new_recipe_scan)
+
+# Add regression coverage for executable recipe surfaces.
+p = Path("crates/goose/src/recipe/mod.rs")
+text = p.read_text()
+marker = "    #[test]\n    fn test_from_content_with_json() {"
+test_block = '''    #[test]
+    fn security_scan_flags_stdio_extensions() {
+        let recipe = Recipe::from_content(
+            r#"version: \"1.0.0\"
+title: test
+description: test
+prompt: hello
+extensions:
+  - type: stdio
+    name: local-tool
+    cmd: echo
+    args: [hello]
+"#,
+        )
+        .unwrap();
+        assert!(recipe.check_for_security_warnings());
+    }
+
+    #[test]
+    fn security_scan_flags_retry_shell_commands() {
+        let recipe = Recipe::from_content(
+            r#"version: \"1.0.0\"
+title: test
+description: test
+prompt: hello
+retry:
+  max_retries: 1
+  checks:
+    - type: Shell
+      command: echo ok
+"#,
+        )
+        .unwrap();
+        assert!(recipe.check_for_security_warnings());
+    }
+
+'''
+if test_block not in text:
+    if marker not in text:
+        raise SystemExit("Recipe test insertion marker not found")
+    p.write_text(text.replace(marker, test_block + marker, 1))
+    changed = True
+
+print("stabilization patches applied" if changed else "no changes needed")
