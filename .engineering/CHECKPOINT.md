@@ -1,25 +1,25 @@
 # Checkpoint
 
-Status: `APPROVED_READY_FOR_MERGE`
+Status: `READY_FOR_HIVECODE_WO_0001C_AUDIT`
 
 - Project: Hive Code
 - Repository: `KayzenRoot/hive-code`
 - Mode: `EXISTING_PROJECT/BROWNFIELD`
-- Construction model: `GEF V1`
-- Active Work Order: `HIVECODE-WO-0001`
-- Branch: `hivecode/wo-0001-gef-adoption`
-- Base SHA: `e25ddce2655f8f5eaf5506df7478f8e336a18eaa`
-- Reviewed head SHA: `9e85128122d81a95f5bbbe46e13ffed810e54220`
-- Audit verdict: `APPROVED`
-- Audit evidence: PR #2 comment `5657185986`
-- Risk: `LOW`
-- Product changes: `NONE`
-- Source Pack: `INSTALLED_AND_AUDITED`
-- GEF approved contract coverage: `M00-M07-compatible governance baseline`
-- GEF Bootstrap later modules: `NOT CLAIMED`
-- Next legal stage after merge: `COMPILE_HIVECODE_WO_0002`
+- Construction model: `GEF V1 OPERATIONAL`
+- Active Work Order: `HIVECODE-WO-0001C`
+- Branch: `hivecode/wo-0001c-operational-gef`
+- Authorized base SHA: `60a4e476b95aff80918f110630e422701f360897`
+- Correction type: `T2`
+- Context radius: `C2`
+- Risk: `LOW` (governance/docs only)
+- Product changes: `NONE AUTHORIZED`
+- Operational GEF path: `.engineering/gef/`
+- Reference implementations: `KayzenRoot/hive` and `KayzenRoot/hive-crypto-trader`
+- Incorrect source interpretation: `gef-bootstrap` — `SUPERSEDED`
+- Shadow Assurance: `ON`
+- Next legal stage: `AUDIT_HIVECODE_WO_0001C`
 
 ## Continuation contract
-After this checkpoint-only delta is verified and PR #2 is merged, the next necessary increment is `HIVECODE-WO-0002 — Baseline Audit and Inherited Subsystem Map`. Do not start rebranding, product modification, CI/CD implementation or cleanup before that audit maps inherited boundaries and evidence.
+Do not begin product rebranding, inherited subsystem modification, dependency migration or CI/CD implementation until this correction is audited and promoted. After correction approval, resume with `HIVECODE-WO-0002 — Baseline Audit and Inherited Subsystem Map` under the operational GEF V1 pipeline.
 
-STOP CONDITION: `APPROVED_READY_FOR_MERGE`.
+STOP CONDITION: `READY_FOR_HIVECODE_WO_0001C_AUDIT`.
