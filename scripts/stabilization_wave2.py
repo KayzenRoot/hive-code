@@ -57,6 +57,14 @@ replace_exact(
         }
 ''',
 )
+replace_exact(
+    "crates/goose/src/oauth/mod.rs",
+    '''    let mut preserve_credentials_after_refresh_failure = false;
+    let mut preserve_credentials_after_refresh_failure = false;
+''',
+    '''    let mut preserve_credentials_after_refresh_failure = false;
+''',
+)
 
 # HC-AUD-002: until child ActionRequired routing exists, never weaken an approval-requiring
 # parent into an autonomous subagent. Refuse delegation instead of bypassing the policy.
