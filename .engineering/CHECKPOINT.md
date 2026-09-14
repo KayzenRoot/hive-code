@@ -1,26 +1,26 @@
 # Checkpoint
 
-Status: `APPROVED_READY_FOR_MERGE`
+Status: `READY_FOR_HIVECODE_WO_0002_AUDIT`
 
 - Project: Hive Code
 - Repository: `KayzenRoot/hive-code`
 - Mode: `EXISTING_PROJECT/BROWNFIELD`
 - Construction model: `GEF V1 OPERATIONAL`
-- Active Work Order: `HIVECODE-WO-0001D`
-- Branch: `hivecode/wo-0001d-solo-maintainer-policy`
 - Governance model: `SOLO_MAINTAINER`
 - Sole human maintainer/code owner: `@KayzenRoot`
-- External contributors: `NOT ACCEPTED BY DEFAULT`
-- AI assistance: `ALLOWED UNDER MAINTAINER DIRECTION`
-- Historical Goose authors: `UPSTREAM PROVENANCE ONLY`
+- Active Work Order: `HIVECODE-WO-0002`
+- Branch: `hivecode/wo-0002-branding-inventory`
+- Authorized base SHA: `4c715ce0ebe8636b18294d521450bdda829449a2`
+- Task class: `T2`
+- Context radius: `C2`
+- Canonical product brand: `Hive Code`
+- Upstream identity: `Goose — PROVENANCE/COMPATIBILITY ONLY`
+- Final visual assets: `UGAS_PENDING`
 - History rewrite: `NOT AUTHORIZED`
-- Audit verdict: `APPROVED`
-- Audit evidence: PR #11 comment `5657237132`
-- Risk: `LOW`
-- Product changes: `NONE`
-- Next legal stage after merge: `COMPILE_HIVECODE_WO_0002`
+- Product code changes: `NONE AUTHORIZED`
+- Next legal stage after approval: `HIVECODE-WO-0002A — Safe User-Facing Branding Migration`
 
 ## Continuation contract
-After merge, resume `HIVECODE-WO-0002 — Baseline Audit and Inherited Subsystem Map` under the operational GEF V1 pipeline.
+After this inventory/identity freeze is audited and merged, rebrand only low-risk user-facing surfaces under WO-0002A. Do not rename crates, CLI executable, persistent data paths, protocol identifiers or external package coordinates until separately authorized with compatibility evidence.
 
-STOP CONDITION: `APPROVED_READY_FOR_MERGE`.
+STOP CONDITION: `READY_FOR_HIVECODE_WO_0002_AUDIT`.
