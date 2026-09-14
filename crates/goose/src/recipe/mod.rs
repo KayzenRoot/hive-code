@@ -280,11 +280,11 @@ impl Recipe {
             return true;
         }
 
-        if self
-            .activities
-            .as_ref()
-            .is_some_and(|activities| activities.iter().any(|activity| contains_unicode_tags(activity)))
-        {
+        if self.activities.as_ref().is_some_and(|activities| {
+            activities
+                .iter()
+                .any(|activity| contains_unicode_tags(activity))
+        }) {
             return true;
         }
 
@@ -297,7 +297,11 @@ impl Recipe {
         }
 
         if self.retry.as_ref().is_some_and(|retry| {
-            !retry.checks.is_empty() || retry.on_failure.as_ref().is_some_and(|command| !command.trim().is_empty())
+            !retry.checks.is_empty()
+                || retry
+                    .on_failure
+                    .as_ref()
+                    .is_some_and(|command| !command.trim().is_empty())
         }) {
             return true;
         }

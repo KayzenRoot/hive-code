@@ -202,6 +202,7 @@ impl AgentManager {
         config.session_name_update_tx = runtime_context.session_name_update_tx;
         let agent = Arc::new(Agent::with_config(config));
         let mut extension_results = Vec::new();
+        let mut provider_restore_error = None;
 
         if let Ok(session) = self
             .agent_config
@@ -223,6 +224,7 @@ impl AgentManager {
                         session_id,
                         error
                     );
+                    provider_restore_error = Some(error);
                 }
             }
             extension_results = agent.load_extensions_from_session(&session).await;
@@ -256,6 +258,13 @@ impl AgentManager {
                     .await
                     .map_err(|e| anyhow::anyhow!("Failed to propagate mode to provider: {}", e))?;
             }
+        }
+
+        if agent.provider().await.is_err() {
+            if let Some(error) = provider_restore_error {
+                return Err(error);
+            }
+            anyhow::bail!("Provider not set for session {session_id}");
         }
 
         let mut sessions = self.sessions.write().await;
