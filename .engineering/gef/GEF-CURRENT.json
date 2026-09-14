@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "gef-current-v1",
+  "gefVersion": "1.0",
+  "project": "Hive Code",
+  "repository": "KayzenRoot/hive-code",
+  "mode": "EXISTING_PROJECT/BROWNFIELD",
+  "status": "GOVERNED_CANDIDATE",
+  "adoptionCorrection": "HIVECODE-WO-0001C",
+  "shadowAssurance": true,
+  "taskClasses": ["T0", "T1", "T2", "T3"],
+  "contextRadius": ["C0", "C1", "C2", "C3", "C4"],
+  "assurance": ["A0", "A1", "A2", "A3", "A4"],
+  "pipeline": [
+    "Source Drift Sentinel",
+    "Task Class",
+    "Context Radius",
+    "UPIR/Task Manifest",
+    "Decision Freeze Capsule",
+    "Context Slice",
+    "Patch Recipe",
+    "Budgets",
+    "SOURCE_MATCH",
+    "bounded executor",
+    "A0/A1/A2",
+    "one final publication",
+    "A3 hosted gates + HEDS Delta",
+    "exact-head verdict"
+  ],
+  "stopStates": [
+    "COMPLETE_CANDIDATE",
+    "SOURCE_CONFLICT",
+    "SCOPE_EXPANSION_REQUIRED",
+    "BLOCKED_EVIDENCE",
+    "NEEDS_ARCHITECTURE"
+  ]
+}
