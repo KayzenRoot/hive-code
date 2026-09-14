@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "gef-proof-map-v1",
+  "gefVersion": "1.0",
+  "repository": "KayzenRoot/hive-code",
+  "shadowAssurance": true,
+  "proofs": [
+    {"proofId":"A0-static","status":"UNVERIFIED"},
+    {"proofId":"A1-focused","status":"UNVERIFIED"},
+    {"proofId":"A2-impacted","status":"UNVERIFIED"},
+    {"proofId":"A3-hosted","status":"UNVERIFIED"},
+    {"proofId":"A4-heds-delta","status":"UNVERIFIED"}
+  ]
+}
