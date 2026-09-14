@@ -41,3 +41,18 @@ Status: APPROVED
 `@KayzenRoot` is the sole human maintainer and project builder for Hive Code. The project does not accept external contributors, co-maintainers, shared code ownership or unsolicited implementation PRs by default. AI assistance may support construction, review and repository operations under `@KayzenRoot` direction without creating an independent maintainer/contributor role.
 
 Historical Goose commit authors are preserved only as upstream provenance and attribution evidence. Their appearance in imported Git history does not confer current Hive Code maintainer or contributor status. Rewriting imported history solely to remove historical authors is forbidden unless separately authorized as a destructive migration with licensing and traceability evidence.
+
+## HC-D-0009 — Hive Code is the canonical product brand
+Status: APPROVED
+
+The official product name is `Hive Code`. Goose is upstream technical provenance and a temporary compatibility identifier where inherited technical surfaces still require it. User-facing current-project identity should migrate to Hive Code unless a compatibility, legal or historical reason requires the Goose reference.
+
+## HC-D-0010 — Branding migration is layered, not global replacement
+Status: APPROVED
+
+Branding changes are classified into: low-risk user-facing identity, medium-risk packaging/distribution identity, high-risk executable/package/data-path compatibility, and preserved provenance. A repository-wide blind `goose -> hive` replacement is forbidden.
+
+## HC-D-0011 — Final visual assets are delegated to UGAS
+Status: APPROVED
+
+Final Hive Code logo/icon/splash/favicons/installer and social/README artwork are `UGAS_PENDING`. Text-first and neutral temporary branding may proceed now. UGAS availability does not block naming, documentation, distribution planning or compatibility engineering.
