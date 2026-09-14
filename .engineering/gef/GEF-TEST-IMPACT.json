@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "gef-test-impact-v1",
+  "gefVersion": "1.0",
+  "repository": "KayzenRoot/hive-code",
+  "mode": "SHADOW_ASSURANCE",
+  "selectionPolicy": "CONSERVATIVE_IMPACT",
+  "fullSuiteDefault": false,
+  "expandOn": [
+    "cross-module contract change",
+    "toolchain or lockfile change",
+    "architecture boundary change",
+    "security-sensitive change",
+    "source conflict",
+    "insufficient focused evidence"
+  ],
+  "requiredLevels": ["A0", "A1", "A2"],
+  "hostedLevel": "A3",
+  "semanticLevel": "A4"
+}
