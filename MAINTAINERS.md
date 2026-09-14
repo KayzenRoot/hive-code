@@ -1,18 +1,13 @@
-# Core Maintainers
+# Hive Code Maintainer
 
-* [Alex Hancock (@alexhancock)](https://github.com/alexhancock)
-* [Bradley Axen (@baxen)](https://github.com/baxen)
-* [Douwe Osinga (@DOsinga)](https://github.com/DOsinga)
-* [Jack Amadeo (@jamadeo)](https://github.com/jamadeo)
-* [Jasper Hugo (@jh-block)](https://github.com/jh-block)
-* [Lifei Zhou (@lifeizhou-ap)](https://github.com/lifeizhou-ap)
-* [Mic Neale (@michaelneale)](https://github.com/michaelneale)
+Hive Code has a single human maintainer and project builder:
 
+- [KayzenRoot (@KayzenRoot)](https://github.com/KayzenRoot)
 
-# Maintainers
+## Contribution model
 
-* [Abhijay Jain (@Abhijay007)](https://github.com/Abhijay007)
-* [Adrian Cole (@codefromthecrypt)](https://github.com/codefromthecrypt)
-* [Angie Jones (@angiejones)](https://github.com/angiejones)
-* [Rizèl Scarlett (@blackgirlbytes)](https://github.com/blackgirlbytes)
-* [@The-Best-Codes](https://github.com/The-Best-Codes)
+Hive Code is not operated as a multi-maintainer community project. External contributors, co-maintainers and shared code ownership are not part of the default construction model.
+
+Historical Goose authors and maintainers remain visible in imported Git history and upstream attribution as provenance. They are not current Hive Code maintainers by virtue of that imported history.
+
+See `.engineering/SOLO-MAINTAINER-POLICY.md` and `GOVERNANCE.md` for the governing rules.
