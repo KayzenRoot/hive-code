@@ -1,0 +1,106 @@
+name: Stabilization Diagnostic
+
+on:
+  push:
+    branches:
+      - hivecode/wo-0002c-stabilization
+
+permissions:
+  contents: read
+
+jobs:
+  goose-router:
+    name: diag / goose router
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.94.1
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test -p goose tool_confirmation_router --locked -- --nocapture
+
+  goose-manager:
+    name: diag / goose manager
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.94.1
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test -p goose execution::manager::tests --locked -- --nocapture
+
+  goose-state-machine:
+    name: diag / goose state machine
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.94.1
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test -p goose state_machine --locked -- --nocapture
+
+  goose-full:
+    name: diag / goose full
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.94.1
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test -p goose --locked -- --nocapture
+
+  providers:
+    name: diag / goose-providers
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.94.1
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test -p goose-providers --locked -- --nocapture
+
+  provider-types:
+    name: diag / goose-provider-types
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.94.1
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test -p goose-provider-types --locked -- --nocapture
+
+  agent:
+    name: diag / goose-agent
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.94.1
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test -p goose-agent --locked -- --nocapture
+
+  cli:
+    name: diag / goose-cli
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.94.1
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test -p goose-cli --locked -- --nocapture
