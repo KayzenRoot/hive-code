@@ -19,6 +19,8 @@ jobs:
           fetch-depth: 0
       - name: Apply bounded patches
         run: python3 scripts/stabilization_wave1.py
+      - name: Format Rust sources
+        run: cargo fmt --all
       - name: Commit corrections when needed
         shell: bash
         run: |
@@ -31,6 +33,7 @@ jobs:
           git add \
             crates/goose/src/acp/server/load_session.rs \
             crates/goose/src/recipe/mod.rs \
-            crates/goose/src/agents/agent.rs
+            crates/goose/src/agents/agent.rs \
+            crates/goose/src/execution/manager.rs
           git commit -m "fix(stability): apply bounded high-priority corrections [stabilization-applied]"
           git push origin HEAD:hivecode/wo-0002c-stabilization
