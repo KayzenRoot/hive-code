@@ -328,6 +328,7 @@ pub async fn oauth_flow_with_challenge(
         .as_ref()
         .map(|stored| stored.granted_scopes.clone())
         .unwrap_or_default();
+    let mut preserve_credentials_after_refresh_failure = false;
 
     // With a challenge in hand (e.g. a 403 insufficient_scope after a
     // previously successful authorization), a refresh cannot satisfy the new
@@ -397,15 +398,18 @@ pub async fn oauth_flow_with_challenge(
                 }
                 Err(e) => {
                     warn!(
-                        "[OAuth:{}] Token refresh failed: {} - clearing stored credentials and falling back to browser auth",
+                        "[OAuth:{}] Token refresh failed: {} - preserving stored credentials and falling back to browser auth for this session",
                         name, e
                     );
+                    preserve_credentials_after_refresh_failure = true;
                 }
             }
         }
 
-        if let Err(e) = credential_store.clear().await {
-            warn!("[OAuth:{}] error clearing bad credentials: {}", name, e);
+        if !preserve_credentials_after_refresh_failure {
+            if let Err(e) = credential_store.clear().await {
+                warn!("[OAuth:{}] error clearing bad credentials: {}", name, e);
+            }
         }
     }
 

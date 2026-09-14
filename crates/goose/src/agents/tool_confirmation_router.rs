@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use tokio::sync::{oneshot, Mutex};
 use tracing::warn;
@@ -7,12 +7,14 @@ use crate::permission::PermissionConfirmation;
 
 pub(super) struct ToolConfirmationRouter {
     pending: Mutex<HashMap<(String, String), oneshot::Sender<PermissionConfirmation>>>,
+    seen: Mutex<HashSet<(String, String)>>,
 }
 
 impl ToolConfirmationRouter {
     pub(super) fn new() -> Self {
         Self {
             pending: Mutex::new(HashMap::new()),
+            seen: Mutex::new(HashSet::new()),
         }
     }
 
@@ -21,10 +23,22 @@ impl ToolConfirmationRouter {
         session_id: String,
         request_id: String,
     ) -> oneshot::Receiver<PermissionConfirmation> {
+        let key = (session_id, request_id);
         let (tx, rx) = oneshot::channel();
+
+        if !self.seen.lock().await.insert(key.clone()) {
+            warn!(
+                session_id = %key.0,
+                request_id = %key.1,
+                "Rejected reused tool confirmation request id"
+            );
+            drop(tx);
+            return rx;
+        }
+
         let mut pending = self.pending.lock().await;
         pending.retain(|_, sender| !sender.is_closed());
-        pending.insert((session_id, request_id), tx);
+        pending.insert(key, tx);
         rx
     }
 
@@ -137,6 +151,25 @@ mod tests {
             .lock()
             .await
             .contains_key(&("session_1".to_string(), "req_2".to_string())));
+    }
+
+    #[tokio::test]
+    async fn test_reused_request_id_is_rejected_even_after_cancellation() {
+        let router = ToolConfirmationRouter::new();
+        let first = router
+            .register("session_1".to_string(), "req_1".to_string())
+            .await;
+        drop(first);
+
+        let reused = router
+            .register("session_1".to_string(), "req_1".to_string())
+            .await;
+        assert!(reused.await.is_err());
+        assert!(
+            !router
+                .deliver("session_1", "req_1", test_confirmation())
+                .await
+        );
     }
 
     #[tokio::test]

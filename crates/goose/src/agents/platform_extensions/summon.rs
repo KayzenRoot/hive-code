@@ -1370,6 +1370,13 @@ impl SummonClient {
             return Err("Delegated tasks cannot spawn further delegations".to_string());
         }
 
+        if session.goose_mode != GooseMode::Auto {
+            return Err(
+                "Delegation is disabled while the parent session requires tool approval; Hive Code will not weaken the parent approval policy for a subagent"
+                    .to_string(),
+            );
+        }
+
         if params.r#async {
             let (content, task_id) = self.handle_async_delegate(session_id, params).await?;
             let mut meta = MetaObject::new();
