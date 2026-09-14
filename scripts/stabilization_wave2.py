@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
+# Hive Code stabilization Wave 2. Re-running this applicator is intentionally idempotent.
+
 
 def replace_exact(path: str, old: str, new: str) -> None:
     p = Path(path)
