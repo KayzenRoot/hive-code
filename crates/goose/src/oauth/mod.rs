@@ -329,7 +329,6 @@ pub async fn oauth_flow_with_challenge(
         .map(|stored| stored.granted_scopes.clone())
         .unwrap_or_default();
     let mut preserve_credentials_after_refresh_failure = false;
-    let mut preserve_credentials_after_refresh_failure = false;
 
     // With a challenge in hand (e.g. a 403 insufficient_scope after a
     // previously successful authorization), a refresh cannot satisfy the new
