@@ -48,7 +48,7 @@ Stabilize the inherited Goose codebase before further branding or feature work. 
 - `HC-AUD-001` PARTIAL FIX: recipe security scanning now flags stdio extensions and retry shell surfaces, with regression tests.
 - `HC-AUD-002` FAIL-CLOSED MITIGATION: delegation is refused when the parent session requires approval, instead of silently weakening the child to autonomous mode.
 - `HC-AUD-003` PARTIAL FAIL-CLOSED MITIGATION: generic tool-confirmation IDs are tombstoned for the lifetime of the router so delayed approvals cannot be routed to a later invocation reusing the same provider-controlled ID.
-- `HC-AUD-005` FIX CANDIDATE: OAuth refresh failure preserves durable stored credentials while the current session may fall back to browser authorization.
+- `HC-AUD-005` FIX CANDIDATE: OAuth refresh failure preserves durable stored credentials while the current session may fall back to browser authorization. A duplicate temporary declaration introduced during patch application was removed before this validation checkpoint.
 - `HC-AUD-006` FIX CANDIDATE: ACP load-session reload includes messages before pending-confirmation/state-machine-resume evaluation.
 - `HC-AUD-009` FIX CANDIDATE: thinking-only provider output is treated as unproductive and enters the bounded empty-turn retry path; Hive-generated fallback text is not replayed to the model.
 - `HC-AUD-011` FIX CANDIDATE: a provider-less restored agent cannot enter the LRU cache; saved-provider restore errors remain retryable on later loads.
@@ -57,7 +57,9 @@ Stabilize the inherited Goose codebase before further branding or feature work. 
 ## Evidence state
 - Initial CI proved checkout/toolchain setup, Desktop dependency installation and Desktop typecheck are operational.
 - A formatting failure introduced by the first patch was detected by the new gate and the applicator was changed to run `cargo fmt --all` before commit.
-- Exact-head CI is re-triggered from this maintainer-authored checkpoint to validate all source changes currently present on the stabilization branch.
+- Long Rust workspace jobs have also experienced external workflow cancellation; those cancellations are not classified as source failures.
+- A bot-authored correction checkpoint produced GitHub `action_required` without jobs; this maintainer-authored checkpoint exists to trigger normal exact-head CI validation.
+- `HC-AUD-004` duplicate-side-effect protection remains unresolved: current state-machine execution still dispatches a tool before its durable response is applied. The correction requires a persisted invocation identity / execution-lease design rather than an unsafe boolean marker.
 - Final status remains `CORRECTION_REQUIRED` until every known HIGH/CRITICAL item is resolved or explicitly proven inapplicable.
 
 ## STOP conditions
