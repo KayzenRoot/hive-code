@@ -116,18 +116,6 @@ fn confirmation_ids(messages: &[Message]) -> Vec<String> {
         .collect()
 }
 
-async fn stream_messages(
-    mut stream: futures::stream::BoxStream<'_, Result<AgentEvent>>,
-) -> Result<Vec<Message>> {
-    let mut messages = Vec::new();
-    while let Some(event) = stream.next().await {
-        if let AgentEvent::Message(message) = event? {
-            messages.push(message);
-        }
-    }
-    Ok(messages)
-}
-
 #[tokio::test]
 async fn state_machine_confirmation_through_agent_resumes_tool_call() -> Result<()> {
     let _guard = env_lock::lock_env([("GOOSE_STATE_MACHINE", Some("1"))]);
