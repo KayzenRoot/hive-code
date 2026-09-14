@@ -1,6 +1,6 @@
 # Checkpoint
 
-Status: `READY_FOR_HIVECODE_WO_0001D_AUDIT`
+Status: `APPROVED_READY_FOR_MERGE`
 
 - Project: Hive Code
 - Repository: `KayzenRoot/hive-code`
@@ -14,11 +14,13 @@ Status: `READY_FOR_HIVECODE_WO_0001D_AUDIT`
 - AI assistance: `ALLOWED UNDER MAINTAINER DIRECTION`
 - Historical Goose authors: `UPSTREAM PROVENANCE ONLY`
 - History rewrite: `NOT AUTHORIZED`
+- Audit verdict: `APPROVED`
+- Audit evidence: PR #11 comment `5657237132`
 - Risk: `LOW`
-- Product changes: `NONE AUTHORIZED`
-- Next legal stage: `AUDIT_HIVECODE_WO_0001D`
+- Product changes: `NONE`
+- Next legal stage after merge: `COMPILE_HIVECODE_WO_0002`
 
 ## Continuation contract
-After this governance correction is audited and merged, resume `HIVECODE-WO-0002 — Baseline Audit and Inherited Subsystem Map` under the operational GEF V1 pipeline.
+After merge, resume `HIVECODE-WO-0002 — Baseline Audit and Inherited Subsystem Map` under the operational GEF V1 pipeline.
 
-STOP CONDITION: `READY_FOR_HIVECODE_WO_0001D_AUDIT`.
+STOP CONDITION: `APPROVED_READY_FOR_MERGE`.
