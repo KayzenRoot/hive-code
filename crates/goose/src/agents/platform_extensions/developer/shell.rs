@@ -958,6 +958,7 @@ mod tests {
         }
     }
 
+    #[cfg(not(windows))]
     fn extract_shell_output(result: &CallToolResult) -> ShellOutput {
         let value = result
             .structured_content

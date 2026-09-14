@@ -1,4 +1,7 @@
-use goose::config::permission::{PermissionConfig, PermissionLevel, PermissionManager};
+#[cfg(unix)]
+use goose::config::permission::PermissionConfig;
+use goose::config::permission::{PermissionLevel, PermissionManager};
+#[cfg(unix)]
 use std::collections::HashMap;
 
 #[test]
