@@ -54,7 +54,10 @@ fn inspect_recipe_tree_for_execution(recipe: &Recipe) -> Result<bool> {
     Ok(has_executable_surfaces)
 }
 
-fn require_recipe_execution_trust(recipe: &Recipe, quiet: bool) -> Result<()> {
+fn require_recipe_execution_trust<F>(recipe: &Recipe, quiet: bool, approve: F) -> Result<()>
+where
+    F: FnOnce() -> Result<bool>,
+{
     if !inspect_recipe_tree_for_execution(recipe)? {
         return Ok(());
     }
@@ -65,12 +68,7 @@ fn require_recipe_execution_trust(recipe: &Recipe, quiet: bool) -> Result<()> {
         );
     }
 
-    let approved = cliclack::confirm(
-        "This recipe can execute local processes, shell checks, or delegated sub-recipes. Continue?",
-    )
-    .initial_value(false)
-    .interact()?;
-    if !approved {
+    if !approve()? {
         anyhow::bail!("Recipe execution cancelled by user");
     }
     Ok(())
@@ -82,11 +80,30 @@ pub fn extract_recipe_info_from_cli(
     additional_sub_recipes: Vec<String>,
     quiet: bool,
 ) -> Result<(InputConfig, Recipe)> {
+    extract_recipe_info_with_approval(recipe_name, params, additional_sub_recipes, quiet, || {
+        Ok(cliclack::confirm(
+            "This recipe can execute local processes, shell checks, or delegated sub-recipes. Continue?",
+        )
+        .initial_value(false)
+        .interact()?)
+    })
+}
+
+fn extract_recipe_info_with_approval<F>(
+    recipe_name: String,
+    params: Vec<(String, String)>,
+    additional_sub_recipes: Vec<String>,
+    quiet: bool,
+    approve: F,
+) -> Result<(InputConfig, Recipe)>
+where
+    F: FnOnce() -> Result<bool>,
+{
     let mut recipe = load_recipe(&recipe_name, params.clone()).unwrap_or_else(|err| {
         eprintln!("{}: {}", console::style("Error").red().bold(), err);
         std::process::exit(1);
     });
-    require_recipe_execution_trust(&recipe, quiet)?;
+    require_recipe_execution_trust(&recipe, quiet, approve)?;
     if !quiet {
         print_recipe_info(&recipe, params);
     }
