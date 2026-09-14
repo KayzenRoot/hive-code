@@ -18,7 +18,7 @@ jobs:
           ref: hivecode/wo-0002c-stabilization
           fetch-depth: 0
       - name: Apply bounded patches
-        run: python3 scripts/stabilization_wave1.py
+        run: python3 scripts/stabilization_wave2.py
       - name: Format Rust sources
         run: cargo fmt --all
       - name: Commit corrections when needed
@@ -31,9 +31,8 @@ jobs:
           git config user.name "KayzenRoot"
           git config user.email "114633702+KayzenRoot@users.noreply.github.com"
           git add \
-            crates/goose/src/acp/server/load_session.rs \
-            crates/goose/src/recipe/mod.rs \
-            crates/goose/src/agents/agent.rs \
-            crates/goose/src/execution/manager.rs
-          git commit -m "fix(stability): apply bounded high-priority corrections [stabilization-applied]"
+            crates/goose/src/oauth/mod.rs \
+            crates/goose/src/agents/platform_extensions/summon.rs \
+            crates/goose/src/agents/tool_confirmation_router.rs
+          git commit -m "fix(stability): apply fail-closed security corrections [stabilization-applied]"
           git push origin HEAD:hivecode/wo-0002c-stabilization
