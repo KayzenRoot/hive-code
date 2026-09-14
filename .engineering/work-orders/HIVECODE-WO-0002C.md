@@ -4,7 +4,7 @@ MODE: CORRECT / VERIFY
 TASK_CLASS: T3
 CONTEXT_RADIUS: C4
 ASSURANCE: A0-A4
-STATUS: IN_PROGRESS
+STATUS: CORRECTION_REQUIRED
 
 ## Project
 Hive Code — `KayzenRoot/hive-code`
@@ -46,12 +46,18 @@ Stabilize the inherited Goose codebase before further branding or feature work. 
 
 ## Corrections applied so far
 - `HC-AUD-001` PARTIAL FIX: recipe security scanning now flags stdio extensions and retry shell surfaces, with regression tests.
-- `HC-AUD-006` FIX CANDIDATE: ACP load-session reload now includes messages before pending-confirmation/state-machine-resume evaluation.
+- `HC-AUD-002` FAIL-CLOSED MITIGATION: delegation is refused when the parent session requires approval, instead of silently weakening the child to autonomous mode.
+- `HC-AUD-003` PARTIAL FAIL-CLOSED MITIGATION: generic tool-confirmation IDs are tombstoned for the lifetime of the router so delayed approvals cannot be routed to a later invocation reusing the same provider-controlled ID.
+- `HC-AUD-005` FIX CANDIDATE: OAuth refresh failure preserves durable stored credentials while the current session may fall back to browser authorization.
+- `HC-AUD-006` FIX CANDIDATE: ACP load-session reload includes messages before pending-confirmation/state-machine-resume evaluation.
+- `HC-AUD-009` FIX CANDIDATE: thinking-only provider output is treated as unproductive and enters the bounded empty-turn retry path; Hive-generated fallback text is not replayed to the model.
+- `HC-AUD-011` FIX CANDIDATE: a provider-less restored agent cannot enter the LRU cache; saved-provider restore errors remain retryable on later loads.
 - Wave 0 CI added: Rust format/check/clippy/tests, Desktop typecheck/unit/lint and Rust dependency audit.
 
 ## Evidence state
-- First CI run confirmed checkout/toolchain setup, Rust formatting, Desktop dependency install, Desktop typecheck and Desktop unit tests before being superseded by newer branch commits.
-- Exact-head CI is being re-triggered on the current stabilization head after the first fixes.
+- Initial CI proved checkout/toolchain setup, Desktop dependency installation and Desktop typecheck are operational.
+- A formatting failure introduced by the first patch was detected by the new gate and the applicator was changed to run `cargo fmt --all` before commit.
+- Exact-head CI is re-triggered from this maintainer-authored checkpoint to validate all source changes currently present on the stabilization branch.
 - Final status remains `CORRECTION_REQUIRED` until every known HIGH/CRITICAL item is resolved or explicitly proven inapplicable.
 
 ## STOP conditions
