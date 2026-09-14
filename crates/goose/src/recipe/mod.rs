@@ -269,44 +269,41 @@ impl Recipe {
         }
     }
 
-    /// Returns true when a recipe contains content or executable surfaces that require
-    /// an explicit trust decision before execution.
-    pub fn check_for_security_warnings(&self) -> bool {
-        if [self.instructions.as_deref(), self.prompt.as_deref()]
+    /// Returns true when recipe text contains hidden Unicode tag content.
+    pub fn has_hidden_content_warning(&self) -> bool {
+        [self.instructions.as_deref(), self.prompt.as_deref()]
             .iter()
             .flatten()
             .any(|&field| contains_unicode_tags(field))
-        {
-            return true;
-        }
+            || self.activities.as_ref().is_some_and(|activities| {
+                activities
+                    .iter()
+                    .any(|activity| contains_unicode_tags(activity))
+            })
+    }
 
-        if self.activities.as_ref().is_some_and(|activities| {
-            activities
-                .iter()
-                .any(|activity| contains_unicode_tags(activity))
-        }) {
-            return true;
-        }
-
-        if self.extensions.as_ref().is_some_and(|extensions| {
+    /// Returns true when running the recipe can introduce local process execution,
+    /// shell-based retry behavior, or delegated sub-recipe execution.
+    pub fn has_executable_surfaces(&self) -> bool {
+        self.extensions.as_ref().is_some_and(|extensions| {
             extensions
                 .iter()
                 .any(|extension| matches!(extension, ExtensionConfig::Stdio { .. }))
-        }) {
-            return true;
-        }
-
-        if self.retry.as_ref().is_some_and(|retry| {
+        }) || self.retry.as_ref().is_some_and(|retry| {
             !retry.checks.is_empty()
                 || retry
                     .on_failure
                     .as_ref()
                     .is_some_and(|command| !command.trim().is_empty())
-        }) {
-            return true;
-        }
+        }) || self
+            .sub_recipes
+            .as_ref()
+            .is_some_and(|sub_recipes| !sub_recipes.is_empty())
+    }
 
-        false
+    /// Returns true when a recipe requires a security decision before execution.
+    pub fn check_for_security_warnings(&self) -> bool {
+        self.has_hidden_content_warning() || self.has_executable_surfaces()
     }
 
     pub fn to_yaml(&self) -> Result<String> {
@@ -490,6 +487,23 @@ retry:
 "#,
         )
         .unwrap();
+        assert!(recipe.check_for_security_warnings());
+    }
+
+    #[test]
+    fn security_scan_flags_sub_recipes() {
+        let recipe = Recipe::from_content(
+            r#"version: "1.0.0"
+title: parent
+description: parent
+prompt: hello
+sub_recipes:
+  - name: child
+    path: child.yaml
+"#,
+        )
+        .unwrap();
+        assert!(recipe.has_executable_surfaces());
         assert!(recipe.check_for_security_warnings());
     }
 
