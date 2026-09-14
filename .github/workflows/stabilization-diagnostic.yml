@@ -9,8 +9,8 @@ permissions:
   contents: read
 
 jobs:
-  goose-oauth:
-    name: diag / goose oauth
+  oauth:
+    name: diag / oauth
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -19,10 +19,12 @@ jobs:
         with:
           toolchain: 1.94.1
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test -p goose oauth --locked -- --nocapture
+      - name: OAuth tests
+        run: |
+          cargo test -p goose --locked oauth -- --nocapture
 
-  goose-recipe:
-    name: diag / goose recipe
+  recipe:
+    name: diag / recipe
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -31,10 +33,12 @@ jobs:
         with:
           toolchain: 1.94.1
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test -p goose recipe --locked -- --nocapture
+      - name: Recipe tests
+        run: |
+          cargo test -p goose --locked recipe -- --nocapture
 
-  goose-permission:
-    name: diag / goose permission
+  permission:
+    name: diag / permission
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -43,10 +47,12 @@ jobs:
         with:
           toolchain: 1.94.1
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test -p goose permission --locked -- --nocapture
+      - name: Permission tests
+        run: |
+          cargo test -p goose --locked permission -- --nocapture
 
-  goose-session:
-    name: diag / goose session manager
+  session:
+    name: diag / session
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -55,10 +61,12 @@ jobs:
         with:
           toolchain: 1.94.1
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test -p goose session --locked -- --nocapture
+      - name: Session tests
+        run: |
+          cargo test -p goose --locked session -- --nocapture
 
-  goose-subagent:
-    name: diag / goose subagent
+  subagent:
+    name: diag / subagent
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -67,10 +75,12 @@ jobs:
         with:
           toolchain: 1.94.1
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test -p goose subagent --locked -- --nocapture
+      - name: Subagent tests
+        run: |
+          cargo test -p goose --locked subagent -- --nocapture
 
-  goose-mcp:
-    name: diag / goose mcp client
+  mcp:
+    name: diag / mcp
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -79,33 +89,11 @@ jobs:
         with:
           toolchain: 1.94.1
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test -p goose mcp_client --locked -- --nocapture
+      - name: MCP tests
+        run: |
+          cargo test -p goose --locked mcp -- --nocapture
 
-  goose-agent-module:
-    name: diag / goose agent module
-    runs-on: ubuntu-24.04
-    timeout-minutes: 35
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: 1.94.1
-      - uses: Swatinem/rust-cache@v2
-      - run: cargo test -p goose agents:: --locked -- --nocapture
-
-  goose-config:
-    name: diag / goose config
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: 1.94.1
-      - uses: Swatinem/rust-cache@v2
-      - run: cargo test -p goose config --locked -- --nocapture
-
-  goose-full:
+  full:
     name: diag / goose full control
     runs-on: ubuntu-24.04
     timeout-minutes: 45
@@ -115,4 +103,6 @@ jobs:
         with:
           toolchain: 1.94.1
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test -p goose --locked -- --nocapture
+      - name: Full goose crate
+        run: |
+          cargo test -p goose --locked -- --nocapture
