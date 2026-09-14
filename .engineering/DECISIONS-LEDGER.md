@@ -34,3 +34,10 @@ The canonical local GEF contract is `.engineering/gef/`. It contains the project
 Status: APPROVED
 
 Proof carry-forward and impacted-test recommendations may be calculated, but they do not skip required hosted gates until separately promoted by measured evidence.
+
+## HC-D-0008 — Solo maintainer construction model
+Status: APPROVED
+
+`@KayzenRoot` is the sole human maintainer and project builder for Hive Code. The project does not accept external contributors, co-maintainers, shared code ownership or unsolicited implementation PRs by default. AI assistance may support construction, review and repository operations under `@KayzenRoot` direction without creating an independent maintainer/contributor role.
+
+Historical Goose commit authors are preserved only as upstream provenance and attribution evidence. Their appearance in imported Git history does not confer current Hive Code maintainer or contributor status. Rewriting imported history solely to remove historical authors is forbidden unless separately authorized as a destructive migration with licensing and traceability evidence.
