@@ -1,6 +1,8 @@
+use std::collections::HashSet;
 use std::path::PathBuf;
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
+use goose::recipe::manifest::load_recipe_from_path;
 use goose::recipe::{Recipe, SubRecipe};
 
 use crate::cli::InputConfig;
@@ -8,16 +10,100 @@ use crate::recipes::print_recipe::print_recipe_info;
 use crate::recipes::recipe::load_recipe;
 use crate::recipes::search_recipe::load_recipe_file;
 
+fn inspect_recipe_tree_for_execution(recipe: &Recipe) -> Result<bool> {
+    if recipe.has_hidden_content_warning() {
+        anyhow::bail!("Recipe execution blocked because hidden Unicode tag content was detected");
+    }
+
+    let mut has_executable_surfaces = recipe.has_executable_surfaces();
+    let mut pending: Vec<PathBuf> = recipe
+        .sub_recipes
+        .as_deref()
+        .unwrap_or_default()
+        .iter()
+        .map(|sub_recipe| PathBuf::from(&sub_recipe.path))
+        .collect();
+    let mut seen = HashSet::new();
+
+    while let Some(path) = pending.pop() {
+        let canonical = path
+            .canonicalize()
+            .with_context(|| format!("Failed to resolve sub-recipe {}", path.display()))?;
+        if !seen.insert(canonical.clone()) {
+            continue;
+        }
+        let child = load_recipe_from_path(&canonical)
+            .with_context(|| format!("Failed to inspect sub-recipe {}", canonical.display()))?;
+        if child.has_hidden_content_warning() {
+            anyhow::bail!(
+                "Recipe execution blocked because hidden Unicode tag content was detected in sub-recipe {}",
+                canonical.display()
+            );
+        }
+        has_executable_surfaces |= child.has_executable_surfaces();
+        pending.extend(
+            child
+                .sub_recipes
+                .as_deref()
+                .unwrap_or_default()
+                .iter()
+                .map(|sub_recipe| PathBuf::from(&sub_recipe.path)),
+        );
+    }
+
+    Ok(has_executable_surfaces)
+}
+
+fn require_recipe_execution_trust<F>(recipe: &Recipe, quiet: bool, approve: F) -> Result<()>
+where
+    F: FnOnce() -> Result<bool>,
+{
+    if !inspect_recipe_tree_for_execution(recipe)? {
+        return Ok(());
+    }
+
+    if quiet {
+        anyhow::bail!(
+            "Recipe execution requires explicit approval because it can start local processes, run shell checks, or delegate sub-recipes; quiet mode cannot provide that approval"
+        );
+    }
+
+    if !approve()? {
+        anyhow::bail!("Recipe execution cancelled by user");
+    }
+    Ok(())
+}
+
 pub fn extract_recipe_info_from_cli(
     recipe_name: String,
     params: Vec<(String, String)>,
     additional_sub_recipes: Vec<String>,
     quiet: bool,
 ) -> Result<(InputConfig, Recipe)> {
+    extract_recipe_info_with_approval(recipe_name, params, additional_sub_recipes, quiet, || {
+        Ok(cliclack::confirm(
+            "This recipe can execute local processes, shell checks, or delegated sub-recipes. Continue?",
+        )
+        .initial_value(false)
+        .interact()?)
+    })
+}
+
+fn extract_recipe_info_with_approval<F>(
+    recipe_name: String,
+    params: Vec<(String, String)>,
+    additional_sub_recipes: Vec<String>,
+    quiet: bool,
+    approve: F,
+) -> Result<(InputConfig, Recipe)>
+where
+    F: FnOnce() -> Result<bool>,
+{
     let mut recipe = load_recipe(&recipe_name, params.clone()).unwrap_or_else(|err| {
         eprintln!("{}: {}", console::style("Error").red().bold(), err);
         std::process::exit(1);
     });
+    require_recipe_execution_trust(&recipe, quiet, approve)?;
     if !quiet {
         print_recipe_info(&recipe, params);
     }
@@ -131,6 +217,54 @@ mod tests {
                 }
             }))
         );
+    }
+
+    #[test]
+    fn executable_recipe_fails_closed_in_quiet_mode() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let recipe_path = temp_dir.path().join("exec_recipe.yaml");
+        std::fs::write(
+            &recipe_path,
+            r#"title: executable
+description: executable recipe
+prompt: hello
+extensions:
+  - type: stdio
+    name: local-tool
+    cmd: echo
+    args: [hello]
+"#,
+        )
+        .unwrap();
+
+        let result = extract_recipe_info_from_cli(
+            recipe_path.to_string_lossy().to_string(),
+            Vec::new(),
+            Vec::new(),
+            true,
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn hidden_content_in_subrecipe_is_rejected() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let child_path = temp_dir.path().join("child.yaml");
+        let parent_path = temp_dir.path().join("parent.yaml");
+        let hidden_tag = '\u{E0001}';
+        std::fs::write(
+            &child_path,
+            format!("title: child\ndescription: child\nprompt: 'hello{hidden_tag}'\n"),
+        )
+        .unwrap();
+        std::fs::write(
+            &parent_path,
+            "title: parent\ndescription: parent\nprompt: hello\nsub_recipes:\n  - name: child\n    path: child.yaml\n",
+        )
+        .unwrap();
+
+        let recipe = load_recipe(parent_path.to_str().unwrap(), Vec::new()).unwrap();
+        assert!(inspect_recipe_tree_for_execution(&recipe).is_err());
     }
 
     #[test]

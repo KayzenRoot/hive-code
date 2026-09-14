@@ -151,9 +151,7 @@ pub fn chat_span(
 fn is_empty_response(message: &Message) -> bool {
     message.content.iter().all(|content| match content {
         MessageContent::Text(text) => text.text.trim().is_empty(),
-        MessageContent::Thinking(thinking) => {
-            thinking.thinking.trim().is_empty() && thinking.signature.is_empty()
-        }
+        MessageContent::Thinking(_) | MessageContent::RedactedThinking(_) => true,
         _ => false,
     })
 }
@@ -603,12 +601,17 @@ mod tests {
     }
 
     #[test]
-    fn signed_thinking_without_text_is_not_an_empty_response() {
+    fn thinking_without_answer_is_an_empty_response() {
+        assert!(is_empty_response(&Message::assistant().with_content(
+            MessageContent::thinking("reasoning", "signature")
+        )));
         assert!(is_empty_response(
-            &Message::assistant().with_content(MessageContent::thinking("", ""))
+            &Message::assistant().with_content(MessageContent::redacted_thinking("encrypted"))
         ));
         assert!(!is_empty_response(
-            &Message::assistant().with_content(MessageContent::thinking("", "sig-omitted"))
+            &Message::assistant()
+                .with_content(MessageContent::thinking("reasoning", "signature"))
+                .with_text("final answer")
         ));
     }
 }

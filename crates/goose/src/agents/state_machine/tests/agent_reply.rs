@@ -116,18 +116,6 @@ fn confirmation_ids(messages: &[Message]) -> Vec<String> {
         .collect()
 }
 
-async fn stream_messages(
-    mut stream: futures::stream::BoxStream<'_, Result<AgentEvent>>,
-) -> Result<Vec<Message>> {
-    let mut messages = Vec::new();
-    while let Some(event) = stream.next().await {
-        if let AgentEvent::Message(message) = event? {
-            messages.push(message);
-        }
-    }
-    Ok(messages)
-}
-
 #[tokio::test]
 async fn state_machine_confirmation_through_agent_resumes_tool_call() -> Result<()> {
     let _guard = env_lock::lock_env([("GOOSE_STATE_MACHINE", Some("1"))]);
@@ -218,22 +206,25 @@ async fn state_machine_confirmation_through_agent_resumes_tool_call() -> Result<
         .await
         .is_err());
     drop(stream);
-    let stream = agent
+    let resumed = agent
         .resume_state_machine_turn(session_config.clone(), CancellationToken::new())
-        .await?
-        .expect("persisted confirmation response should resume the state-machine turn");
-    messages.extend(stream_messages(stream).await?);
-    assert!(messages.iter().any(|message| message
-        .get_tool_response_ids()
-        .contains(&confirmation_id.as_str())));
-    assert_eq!(calculator.total(), 1);
-    assert_eq!(api.call_count(), 2);
+        .await?;
+    assert!(
+        resumed.is_none(),
+        "persisted approval without a durable ToolResponse must fail closed after interruption"
+    );
+    assert_eq!(
+        calculator.total(),
+        0,
+        "an ambiguous approved tool must not be redispatched automatically"
+    );
+    assert_eq!(api.call_count(), 1);
 
     assert!(agent
         .submit_tool_confirmation(&session_config.id, &confirmation_id, Permission::AllowOnce)
         .await
         .is_err());
-    assert_eq!(calculator.total(), 1);
+    assert_eq!(calculator.total(), 0);
 
     assert!(agent
         .submit_tool_confirmation(&session_config.id, "stale-request", Permission::AllowOnce)

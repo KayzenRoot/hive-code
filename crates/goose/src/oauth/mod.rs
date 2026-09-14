@@ -26,6 +26,17 @@ const CLIENT_METADATA_URL: &str = "https://goose-docs.ai/oauth/client-metadata.j
 const DEFAULT_OAUTH_CALLBACK_TIMEOUT_SECS: u64 = 300;
 const OAUTH_CALLBACK_TIMEOUT_ENV: &str = "GOOSE_OAUTH_CALLBACK_TIMEOUT_SECONDS";
 
+fn refresh_failure_definitively_rejects_credentials(error: &AuthError) -> bool {
+    matches!(error, AuthError::TokenRefreshRejected(_))
+}
+
+fn stored_credentials_unchanged(before: &StoredCredentials, current: &StoredCredentials) -> bool {
+    match (serde_json::to_value(before), serde_json::to_value(current)) {
+        (Ok(before), Ok(current)) => before == current,
+        _ => false,
+    }
+}
+
 /// Pre-registered OAuth client supplied by a probe script, for servers whose
 /// authorization server supports neither Dynamic Client Registration nor
 /// Client ID Metadata Documents.
@@ -328,6 +339,7 @@ pub async fn oauth_flow_with_challenge(
         .as_ref()
         .map(|stored| stored.granted_scopes.clone())
         .unwrap_or_default();
+    let mut clear_stored_credentials = true;
 
     // With a challenge in hand (e.g. a 403 insufficient_scope after a
     // previously successful authorization), a refresh cannot satisfy the new
@@ -395,17 +407,47 @@ pub async fn oauth_flow_with_challenge(
                     }
                     return Ok(auth_manager);
                 }
-                Err(e) => {
-                    warn!(
-                        "[OAuth:{}] Token refresh failed: {} - clearing stored credentials and falling back to browser auth",
-                        name, e
-                    );
+                Err(error) => {
+                    if refresh_failure_definitively_rejects_credentials(&error) {
+                        clear_stored_credentials = match credential_store.load().await {
+                            Ok(Some(current)) => {
+                                stored_credentials_unchanged(stored_credentials, &current)
+                            }
+                            Ok(None) => false,
+                            Err(load_error) => {
+                                warn!(
+                                    "[OAuth:{}] could not re-read credentials after definitive refresh rejection: {} - preserving store fail-closed",
+                                    name, load_error
+                                );
+                                false
+                            }
+                        };
+                        if clear_stored_credentials {
+                            warn!(
+                                "[OAuth:{}] refresh token was definitively rejected and the persisted credential is unchanged; clearing it before browser reauthorization: {}",
+                                name, error
+                            );
+                        } else {
+                            warn!(
+                                "[OAuth:{}] refresh token was rejected, but persisted credentials changed or became unavailable; preserving the current store to avoid deleting a concurrent refresh winner: {}",
+                                name, error
+                            );
+                        }
+                    } else {
+                        clear_stored_credentials = false;
+                        warn!(
+                            "[OAuth:{}] token refresh failed without definitive credential rejection; preserving durable credentials and falling back to browser auth for this session: {}",
+                            name, error
+                        );
+                    }
                 }
             }
         }
 
-        if let Err(e) = credential_store.clear().await {
-            warn!("[OAuth:{}] error clearing bad credentials: {}", name, e);
+        if clear_stored_credentials {
+            if let Err(e) = credential_store.clear().await {
+                warn!("[OAuth:{}] error clearing bad credentials: {}", name, e);
+            }
         }
     }
 
@@ -856,6 +898,39 @@ mod tests {
             access_token_needs_refresh(&expired),
             "an expired token must still take the refresh path"
         );
+    }
+
+    #[test]
+    fn refresh_failure_only_clears_on_definitive_rejection() {
+        assert!(refresh_failure_definitively_rejects_credentials(
+            &AuthError::TokenRefreshRejected("invalid_grant".to_string())
+        ));
+        assert!(!refresh_failure_definitively_rejects_credentials(
+            &AuthError::TokenRefreshFailed("temporarily_unavailable".to_string())
+        ));
+        assert!(!refresh_failure_definitively_rejects_credentials(
+            &AuthError::AuthorizationRequired
+        ));
+    }
+
+    #[test]
+    fn credential_snapshot_comparison_detects_concurrent_rotation() {
+        let original = StoredCredentials::new(
+            "client-id".to_string(),
+            None,
+            vec!["scope.read".to_string()],
+            Some(100),
+        );
+        let same = original.clone();
+        let rotated = StoredCredentials::new(
+            "client-id".to_string(),
+            None,
+            vec!["scope.read".to_string()],
+            Some(101),
+        );
+
+        assert!(stored_credentials_unchanged(&original, &same));
+        assert!(!stored_credentials_unchanged(&original, &rotated));
     }
 
     #[tokio::test]

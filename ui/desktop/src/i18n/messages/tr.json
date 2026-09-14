@@ -1,6 +1,30 @@
 {
+  "acpReadinessPanel.adapterFound": {
+    "defaultMessage": "ACP bağdaştırıcısı bulundu"
+  },
+  "acpReadinessPanel.adapterNotFound": {
+    "defaultMessage": "ACP bağdaştırıcısı bulunamadı"
+  },
+  "acpReadinessPanel.authenticationHelp": {
+    "defaultMessage": "Sağlayıcı CLI üzerinden oturum açın, ardından tekrar kontrol edin."
+  },
+  "acpReadinessPanel.checkAgain": {
+    "defaultMessage": "Tekrar kontrol et"
+  },
+  "acpReadinessPanel.checking": {
+    "defaultMessage": "Kontrol ediliyor..."
+  },
+  "acpReadinessPanel.connected": {
+    "defaultMessage": "Başarıyla bağlanıldı"
+  },
+  "acpReadinessPanel.connectionNotChecked": {
+    "defaultMessage": "Devam etmeden önce hesap bağlantınızı kontrol edin."
+  },
   "alertBox.autoCompactAt": {
     "defaultMessage": "Otomatik sıkıştırma eşiği"
+  },
+  "alertBox.autoCompactOff": {
+    "defaultMessage": "Auto compact: off"
   },
   "alertBox.compactNow": {
     "defaultMessage": "Şimdi sıkıştır"
@@ -923,11 +947,11 @@
   "dirSwitcher.enterPath": {
     "defaultMessage": "Enter path"
   },
-  "dirSwitcher.enterPathPlaceholder": {
-    "defaultMessage": "Enter an absolute path (e.g. /home/goose/workspace)"
-  },
   "dirSwitcher.enterPathInvalid": {
     "defaultMessage": "Working directory must be an absolute path"
+  },
+  "dirSwitcher.enterPathPlaceholder": {
+    "defaultMessage": "Enter an absolute path (e.g. /home/goose/workspace)"
   },
   "dirSwitcher.failedToUpdateWorkingDir": {
     "defaultMessage": "Çalışma dizini güncellenemedi"
@@ -943,18 +967,6 @@
   },
   "dirSwitcher.recentDirectories": {
     "defaultMessage": "Son dizinler"
-  },
-  "gitBranchIndicator.failedToSwitch": {
-    "defaultMessage": "{branch} dalına geçilemedi"
-  },
-  "gitBranchIndicator.noBranchesFound": {
-    "defaultMessage": "Dal bulunamadı"
-  },
-  "gitBranchIndicator.searchBranches": {
-    "defaultMessage": "Dal ara…"
-  },
-  "gitBranchIndicator.uncommittedChanges": {
-    "defaultMessage": "Commit edilmemiş değişiklikleriniz olabilir."
   },
   "elicitationRequest.accept": {
     "defaultMessage": "Kabul et"
@@ -1258,6 +1270,18 @@
   },
   "externalBackendSection.workingDirPlaceholder": {
     "defaultMessage": "/home/goose/workspace"
+  },
+  "gitBranchIndicator.failedToSwitch": {
+    "defaultMessage": "{branch} dalına geçilemedi"
+  },
+  "gitBranchIndicator.noBranchesFound": {
+    "defaultMessage": "Dal bulunamadı"
+  },
+  "gitBranchIndicator.searchBranches": {
+    "defaultMessage": "Dal ara…"
+  },
+  "gitBranchIndicator.uncommittedChanges": {
+    "defaultMessage": "Commit edilmemiş değişiklikleriniz olabilir."
   },
   "goosehintsModal.close": {
     "defaultMessage": "Kapat"
@@ -2312,6 +2336,9 @@
   "modelsBottomBar.localModelSettingsTitle": {
     "defaultMessage": "Yerel Model Ayarları — {modelName}"
   },
+  "modelsBottomBar.recentModels": {
+    "defaultMessage": "Son kullanılan"
+  },
   "modelsBottomBar.resolvedModel": {
     "defaultMessage": "Çözümlenen model"
   },
@@ -2684,6 +2711,9 @@
   "promptsSettings.unsavedChanges": {
     "defaultMessage": "Kaydedilmemiş değişiklikleriniz var"
   },
+  "providerCard.deprecatedReplacement": {
+    "defaultMessage": "Kullanımdan kaldırıldı — bunun yerine {replacement} kullanın."
+  },
   "providerCard.noMetadata": {
     "defaultMessage": "ProviderCard hatası: Meta veri sağlanmadı"
   },
@@ -2738,8 +2768,17 @@
   "providerConfigForm.continue": {
     "defaultMessage": "Devam et"
   },
+  "providerConfigForm.deviceCodeAndEnter": {
+    "defaultMessage": "ve girin:"
+  },
+  "providerConfigForm.deviceCodeCopy": {
+    "defaultMessage": "Kopyala"
+  },
   "providerConfigForm.deviceCodeFlowHint": {
     "defaultMessage": "Bir tarayıcı penceresi açılacak. Doğrulama kodu burada görünecek; oturum açmayı tamamlamak için kodu girin."
+  },
+  "providerConfigForm.deviceCodeVisit": {
+    "defaultMessage": "Ziyaret edin"
   },
   "providerConfigForm.noApiKey": {
     "defaultMessage": "API anahtarınız yok mu?"
@@ -2765,6 +2804,9 @@
   "providerConfigurationModal.checkConfigAgain": {
     "defaultMessage": "Bu sağlayıcıyı kullanmak için yapılandırmanızı tekrar kontrol edin."
   },
+  "providerConfigurationModal.chooseModel": {
+    "defaultMessage": "Modeli seçin"
+  },
   "providerConfigurationModal.close": {
     "defaultMessage": "Kapat"
   },
@@ -2777,8 +2819,17 @@
   "providerConfigurationModal.deleteConfirmation": {
     "defaultMessage": "Bu, mevcut sağlayıcı yapılandırmasını kalıcı olarak silecektir."
   },
+  "providerConfigurationModal.deviceCodeAndEnter": {
+    "defaultMessage": "ve girin:"
+  },
+  "providerConfigurationModal.deviceCodeCopy": {
+    "defaultMessage": "Kopyala"
+  },
   "providerConfigurationModal.deviceCodeFlowHint": {
     "defaultMessage": "Bir tarayıcı penceresi açılacak. Doğrulama kodu burada görünecek; oturum açmayı tamamlamak için kodu girin."
+  },
+  "providerConfigurationModal.deviceCodeVisit": {
+    "defaultMessage": "Ziyaret edin"
   },
   "providerConfigurationModal.errorCheckingConfig": {
     "defaultMessage": "Bu sağlayıcı yapılandırması kontrol edilirken bir hata oluştu."
@@ -4621,53 +4672,5 @@
   },
   "userMessage.removeImageFromEdit": {
     "defaultMessage": "Görseli mesajdan kaldır"
-  },
-  "modelsBottomBar.recentModels": {
-    "defaultMessage": "Son kullanılan"
-  },
-  "providerConfigurationModal.chooseModel": {
-    "defaultMessage": "Modeli seçin"
-  },
-  "providerCard.deprecatedReplacement": {
-    "defaultMessage": "Kullanımdan kaldırıldı — bunun yerine {replacement} kullanın."
-  },
-  "acpReadinessPanel.adapterFound": {
-    "defaultMessage": "ACP bağdaştırıcısı bulundu"
-  },
-  "acpReadinessPanel.adapterNotFound": {
-    "defaultMessage": "ACP bağdaştırıcısı bulunamadı"
-  },
-  "acpReadinessPanel.authenticationHelp": {
-    "defaultMessage": "Sağlayıcı CLI üzerinden oturum açın, ardından tekrar kontrol edin."
-  },
-  "acpReadinessPanel.checkAgain": {
-    "defaultMessage": "Tekrar kontrol et"
-  },
-  "acpReadinessPanel.checking": {
-    "defaultMessage": "Kontrol ediliyor..."
-  },
-  "acpReadinessPanel.connected": {
-    "defaultMessage": "Başarıyla bağlanıldı"
-  },
-  "acpReadinessPanel.connectionNotChecked": {
-    "defaultMessage": "Devam etmeden önce hesap bağlantınızı kontrol edin."
-  },
-  "providerConfigForm.deviceCodeAndEnter": {
-    "defaultMessage": "ve girin:"
-  },
-  "providerConfigForm.deviceCodeCopy": {
-    "defaultMessage": "Kopyala"
-  },
-  "providerConfigForm.deviceCodeVisit": {
-    "defaultMessage": "Ziyaret edin"
-  },
-  "providerConfigurationModal.deviceCodeAndEnter": {
-    "defaultMessage": "ve girin:"
-  },
-  "providerConfigurationModal.deviceCodeCopy": {
-    "defaultMessage": "Kopyala"
-  },
-  "providerConfigurationModal.deviceCodeVisit": {
-    "defaultMessage": "Ziyaret edin"
   }
 }

@@ -1,6 +1,30 @@
 {
+  "acpReadinessPanel.adapterFound": {
+    "defaultMessage": "ACP-Adapter gefunden"
+  },
+  "acpReadinessPanel.adapterNotFound": {
+    "defaultMessage": "ACP-Adapter nicht gefunden"
+  },
+  "acpReadinessPanel.authenticationHelp": {
+    "defaultMessage": "Melden Sie sich über die Anbieter-CLI an und prüfen Sie die Verbindung erneut."
+  },
+  "acpReadinessPanel.checkAgain": {
+    "defaultMessage": "Erneut prüfen"
+  },
+  "acpReadinessPanel.checking": {
+    "defaultMessage": "Wird geprüft..."
+  },
+  "acpReadinessPanel.connected": {
+    "defaultMessage": "Erfolgreich verbunden"
+  },
+  "acpReadinessPanel.connectionNotChecked": {
+    "defaultMessage": "Prüfen Sie Ihre Kontoverbindung, bevor Sie fortfahren."
+  },
   "alertBox.autoCompactAt": {
     "defaultMessage": "Automatisch verdichten bei"
+  },
+  "alertBox.autoCompactOff": {
+    "defaultMessage": "Auto compact: off"
   },
   "alertBox.compactNow": {
     "defaultMessage": "Jetzt verdichten"
@@ -923,11 +947,11 @@
   "dirSwitcher.enterPath": {
     "defaultMessage": "Pfad eingeben"
   },
-  "dirSwitcher.enterPathPlaceholder": {
-    "defaultMessage": "Absoluten Pfad eingeben (z. B. /home/goose/workspace)"
-  },
   "dirSwitcher.enterPathInvalid": {
     "defaultMessage": "Arbeitsverzeichnis muss ein absoluter Pfad sein"
+  },
+  "dirSwitcher.enterPathPlaceholder": {
+    "defaultMessage": "Absoluten Pfad eingeben (z. B. /home/goose/workspace)"
   },
   "dirSwitcher.failedToUpdateWorkingDir": {
     "defaultMessage": "Aktualisieren des Arbeitsverzeichnisses fehlgeschlagen"
@@ -943,18 +967,6 @@
   },
   "dirSwitcher.recentDirectories": {
     "defaultMessage": "Zuletzt verwendete Verzeichnisse"
-  },
-  "gitBranchIndicator.failedToSwitch": {
-    "defaultMessage": "Wechsel zu {branch} fehlgeschlagen"
-  },
-  "gitBranchIndicator.noBranchesFound": {
-    "defaultMessage": "Keine Branches gefunden"
-  },
-  "gitBranchIndicator.searchBranches": {
-    "defaultMessage": "Branches durchsuchen…"
-  },
-  "gitBranchIndicator.uncommittedChanges": {
-    "defaultMessage": "Möglicherweise gibt es noch nicht committete Änderungen."
   },
   "elicitationRequest.accept": {
     "defaultMessage": "Akzeptieren"
@@ -1258,6 +1270,18 @@
   },
   "externalBackendSection.workingDirPlaceholder": {
     "defaultMessage": "/home/goose/workspace"
+  },
+  "gitBranchIndicator.failedToSwitch": {
+    "defaultMessage": "Wechsel zu {branch} fehlgeschlagen"
+  },
+  "gitBranchIndicator.noBranchesFound": {
+    "defaultMessage": "Keine Branches gefunden"
+  },
+  "gitBranchIndicator.searchBranches": {
+    "defaultMessage": "Branches durchsuchen…"
+  },
+  "gitBranchIndicator.uncommittedChanges": {
+    "defaultMessage": "Möglicherweise gibt es noch nicht committete Änderungen."
   },
   "goosehintsModal.close": {
     "defaultMessage": "Schließen"
@@ -2312,6 +2336,9 @@
   "modelsBottomBar.localModelSettingsTitle": {
     "defaultMessage": "Lokale Modelleinstellungen — {modelName}"
   },
+  "modelsBottomBar.recentModels": {
+    "defaultMessage": "Zuletzt verwendet"
+  },
   "modelsBottomBar.resolvedModel": {
     "defaultMessage": "Aufgelöstes Modell"
   },
@@ -2684,6 +2711,9 @@
   "promptsSettings.unsavedChanges": {
     "defaultMessage": "Sie haben nicht gespeicherte Änderungen"
   },
+  "providerCard.deprecatedReplacement": {
+    "defaultMessage": "Veraltet — verwenden Sie stattdessen {replacement}."
+  },
   "providerCard.noMetadata": {
     "defaultMessage": "ProviderCard-Fehler: Keine Metadaten bereitgestellt"
   },
@@ -2738,8 +2768,17 @@
   "providerConfigForm.continue": {
     "defaultMessage": "Weiter"
   },
+  "providerConfigForm.deviceCodeAndEnter": {
+    "defaultMessage": "und geben Sie ein:"
+  },
+  "providerConfigForm.deviceCodeCopy": {
+    "defaultMessage": "Kopieren"
+  },
   "providerConfigForm.deviceCodeFlowHint": {
     "defaultMessage": "Ein Browserfenster wird geöffnet. Der Bestätigungscode wird hier angezeigt, damit Sie ihn eingeben und die Anmeldung abschließen können."
+  },
+  "providerConfigForm.deviceCodeVisit": {
+    "defaultMessage": "Besuchen Sie"
   },
   "providerConfigForm.noApiKey": {
     "defaultMessage": "Sie haben keinen API-Schlüssel?"
@@ -2765,6 +2804,9 @@
   "providerConfigurationModal.checkConfigAgain": {
     "defaultMessage": "Überprüfen Sie Ihre Konfiguration erneut, um diesen Anbieter zu verwenden."
   },
+  "providerConfigurationModal.chooseModel": {
+    "defaultMessage": "Modell auswählen"
+  },
   "providerConfigurationModal.close": {
     "defaultMessage": "Schließen"
   },
@@ -2777,8 +2819,17 @@
   "providerConfigurationModal.deleteConfirmation": {
     "defaultMessage": "Dadurch wird die aktuelle Anbieterkonfiguration dauerhaft gelöscht."
   },
+  "providerConfigurationModal.deviceCodeAndEnter": {
+    "defaultMessage": "und geben Sie ein:"
+  },
+  "providerConfigurationModal.deviceCodeCopy": {
+    "defaultMessage": "Kopieren"
+  },
   "providerConfigurationModal.deviceCodeFlowHint": {
     "defaultMessage": "Ein Browserfenster wird geöffnet. Der Bestätigungscode wird hier angezeigt, damit Sie ihn eingeben und die Anmeldung abschließen können."
+  },
+  "providerConfigurationModal.deviceCodeVisit": {
+    "defaultMessage": "Besuchen Sie"
   },
   "providerConfigurationModal.errorCheckingConfig": {
     "defaultMessage": "Beim Überprüfen dieser Anbieterkonfiguration ist ein Fehler aufgetreten."
@@ -4621,53 +4672,5 @@
   },
   "userMessage.removeImageFromEdit": {
     "defaultMessage": "Bild aus Nachricht entfernen"
-  },
-  "modelsBottomBar.recentModels": {
-    "defaultMessage": "Zuletzt verwendet"
-  },
-  "providerConfigurationModal.chooseModel": {
-    "defaultMessage": "Modell auswählen"
-  },
-  "providerCard.deprecatedReplacement": {
-    "defaultMessage": "Veraltet — verwenden Sie stattdessen {replacement}."
-  },
-  "acpReadinessPanel.adapterFound": {
-    "defaultMessage": "ACP-Adapter gefunden"
-  },
-  "acpReadinessPanel.adapterNotFound": {
-    "defaultMessage": "ACP-Adapter nicht gefunden"
-  },
-  "acpReadinessPanel.authenticationHelp": {
-    "defaultMessage": "Melden Sie sich über die Anbieter-CLI an und prüfen Sie die Verbindung erneut."
-  },
-  "acpReadinessPanel.checkAgain": {
-    "defaultMessage": "Erneut prüfen"
-  },
-  "acpReadinessPanel.checking": {
-    "defaultMessage": "Wird geprüft..."
-  },
-  "acpReadinessPanel.connected": {
-    "defaultMessage": "Erfolgreich verbunden"
-  },
-  "acpReadinessPanel.connectionNotChecked": {
-    "defaultMessage": "Prüfen Sie Ihre Kontoverbindung, bevor Sie fortfahren."
-  },
-  "providerConfigForm.deviceCodeAndEnter": {
-    "defaultMessage": "und geben Sie ein:"
-  },
-  "providerConfigForm.deviceCodeCopy": {
-    "defaultMessage": "Kopieren"
-  },
-  "providerConfigForm.deviceCodeVisit": {
-    "defaultMessage": "Besuchen Sie"
-  },
-  "providerConfigurationModal.deviceCodeAndEnter": {
-    "defaultMessage": "und geben Sie ein:"
-  },
-  "providerConfigurationModal.deviceCodeCopy": {
-    "defaultMessage": "Kopieren"
-  },
-  "providerConfigurationModal.deviceCodeVisit": {
-    "defaultMessage": "Besuchen Sie"
   }
 }

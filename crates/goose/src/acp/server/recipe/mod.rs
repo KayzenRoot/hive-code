@@ -238,7 +238,7 @@ impl GooseAcpAgent {
         let recipe = recipe_from_dto(req.recipe)?;
         if recipe.check_for_security_warnings() {
             return Err(agent_client_protocol::Error::invalid_params().data(
-                "This recipe contains hidden characters that could be malicious. Please remove them before trying to save.",
+                "This recipe contains hidden content or executable surfaces that require an explicit trust decision before it can be saved through ACP.",
             ));
         }
         validate_recipe_without_dir(&recipe)?;

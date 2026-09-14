@@ -421,7 +421,7 @@ impl GooseAcpAgent {
         resume_saved_provider_session(&provider, session.conversation.as_ref()).await;
         session = self
             .session_manager
-            .get_session(&session_id_str, false)
+            .get_session(&session_id_str, true)
             .await
             .internal_err_ctx("Failed to reload session")?;
 
@@ -456,12 +456,21 @@ impl GooseAcpAgent {
             .as_ref()
             .map(pending_tool_confirmations)
             .unwrap_or_default();
-        let should_resume_state_machine = crate::agents::state_machine::enabled()
-            && (!pending_confirmations.is_empty()
-                || session
-                    .conversation
-                    .as_ref()
-                    .is_some_and(has_unapplied_tool_confirmation_response));
+        let has_ambiguous_executed_tool = session
+            .conversation
+            .as_ref()
+            .is_some_and(has_unapplied_tool_confirmation_response);
+        if crate::agents::state_machine::enabled()
+            && pending_confirmations.is_empty()
+            && has_ambiguous_executed_tool
+        {
+            warn!(
+                session_id = session_id_str,
+                "Not auto-resuming an approved tool call without a persisted response; the tool may already have produced side effects before interruption"
+            );
+        }
+        let should_resume_state_machine =
+            crate::agents::state_machine::enabled() && !pending_confirmations.is_empty();
         if should_resume_state_machine {
             self.start_resumed_state_machine_turn(
                 cx,

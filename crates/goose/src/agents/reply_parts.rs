@@ -399,7 +399,9 @@ pub(crate) async fn stream_response_from_provider(
 
     // If there was an error creating the stream, return a stream that yields that error
     let mut stream = match stream_result {
-        Ok(s) => s,
+        Ok(s) => {
+            goose_providers::stream_cap::cap_stream_duration(s, provider.manages_own_context())
+        }
         Err(e) => {
             let enhanced_error = enhance_model_error(e, &provider, config.toolshim).await;
             // Return a stream that immediately yields the error

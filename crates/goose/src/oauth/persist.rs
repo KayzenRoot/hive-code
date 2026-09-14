@@ -1,7 +1,7 @@
 use rmcp::transport::auth::{AuthError, CredentialStore, StoredCredentials};
 use serde::{Deserialize, Serialize};
 
-use crate::config::Config;
+use crate::config::{Config, ConfigError};
 
 #[derive(Serialize, Deserialize)]
 struct PersistedCredentials {
@@ -36,7 +36,10 @@ impl GooseCredentialStore {
 
         match config.get_secret::<PersistedCredentials>(&key) {
             Ok(credentials) => Ok(Some(credentials)),
-            Err(_) => Ok(None),
+            Err(ConfigError::NotFound(_)) => Ok(None),
+            Err(error) => Err(AuthError::CredentialStoreError(format!(
+                "Failed to load persisted OAuth credentials: {error}"
+            ))),
         }
     }
 

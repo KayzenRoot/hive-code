@@ -490,7 +490,11 @@ pub trait Provider: Send + Sync {
         tools: &[Tool],
     ) -> Result<(Message, ProviderUsage), ProviderError> {
         let stream = self.stream(model_config, system, messages, tools).await?;
-        collect_stream(stream).await
+        collect_stream(crate::stream_cap::cap_stream_duration(
+            stream,
+            self.manages_own_context(),
+        ))
+        .await
     }
 
     /// Resolve the effective context limit for a model.

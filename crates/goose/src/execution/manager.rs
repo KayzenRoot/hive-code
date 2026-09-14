@@ -202,6 +202,7 @@ impl AgentManager {
         config.session_name_update_tx = runtime_context.session_name_update_tx;
         let agent = Arc::new(Agent::with_config(config));
         let mut extension_results = Vec::new();
+        let mut provider_restore_error = None;
 
         if let Ok(session) = self
             .agent_config
@@ -223,6 +224,7 @@ impl AgentManager {
                         session_id,
                         error
                     );
+                    provider_restore_error = Some(error);
                 }
             }
             extension_results = agent.load_extensions_from_session(&session).await;
@@ -255,6 +257,17 @@ impl AgentManager {
                     .update_mode(session_id, mode)
                     .await
                     .map_err(|e| anyhow::anyhow!("Failed to propagate mode to provider: {}", e))?;
+            }
+        }
+
+        if agent.provider().await.is_err() {
+            // A failed persisted-provider restore must never poison the LRU with
+            // an unusable agent. Provider-less sessions, however, are valid:
+            // callers may create an agent before selecting a provider, and the
+            // long-standing manager tests rely on that lifecycle. Only the
+            // failed-restore case is fail-closed here.
+            if let Some(error) = provider_restore_error {
+                return Err(error);
             }
         }
 

@@ -1920,6 +1920,13 @@ impl SessionStorage {
                 .bind(session_id)
                 .fetch_one(&mut *tx)
                 .await?;
+        let latest = latest.map(|timestamp| {
+            if timestamp > MILLISECOND_TIMESTAMP_THRESHOLD {
+                timestamp / 1000
+            } else {
+                timestamp
+            }
+        });
         let created = message.created.max(latest.unwrap_or(message.created));
 
         let message_id = message

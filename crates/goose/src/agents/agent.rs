@@ -1837,9 +1837,13 @@ impl Agent {
             .as_ref()
             .ok_or_else(|| anyhow!("Session {} has no conversation", session_config.id))?;
         let pending_confirmations = pending_tool_confirmations(conversation);
-        let resume_from_persisted_response = pending_confirmations.is_empty()
-            && has_unapplied_tool_confirmation_response(conversation);
-        if pending_confirmations.is_empty() && !resume_from_persisted_response {
+        if pending_confirmations.is_empty() {
+            if has_unapplied_tool_confirmation_response(conversation) {
+                warn!(
+                    session_id = %session_config.id,
+                    "Refusing to auto-resume a persisted tool approval without a durable ToolResponse; execution state is ambiguous after interruption"
+                );
+            }
             return Ok(None);
         }
 
@@ -1853,23 +1857,11 @@ impl Agent {
 
         let agent = Arc::clone(self);
         Ok(Some(Box::pin(async_stream::try_stream! {
-            let initial_stream = if resume_from_persisted_response {
-                Some(
-                    agent
-                        .stream_state_machine_session(
-                            session_config.clone(),
-                            cancel.clone(),
-                        )
-                        .await?,
-                )
-            } else {
-                None
-            };
             let mut stream = agent.stream_state_machine_turn(
                 session_config,
                 cancel,
                 turn_guard,
-                initial_stream,
+                None,
             );
             while let Some(event) = stream.next().await {
                 yield event?;
@@ -2740,13 +2732,8 @@ impl Agent {
                                     match content {
                                         MessageContent::Text(text) => !text.text.is_empty(),
                                         MessageContent::Image(image) => !image.data.is_empty(),
-                                        MessageContent::Thinking(thinking) => {
-                                            !thinking.thinking.is_empty()
-                                                || !thinking.signature.is_empty()
-                                        }
-                                        MessageContent::RedactedThinking(thinking) => {
-                                            !thinking.data.is_empty()
-                                        }
+                                        MessageContent::Thinking(_) => false,
+                                        MessageContent::RedactedThinking(_) => false,
                                         MessageContent::SystemNotification(notification) => {
                                             !notification.msg.is_empty()
                                         }
@@ -3448,7 +3435,9 @@ impl Agent {
                                         last_assistant_text = EMPTY_TURN_MESSAGE.to_string();
                                         let message = push_message_with_id(
                                             &mut messages_to_add,
-                                            Message::assistant().with_text(EMPTY_TURN_MESSAGE),
+                                            Message::assistant()
+                                                .with_text(EMPTY_TURN_MESSAGE)
+                                                .with_visibility(true, false),
                                         );
                                         yield AgentEvent::Message(message);
                                         exit_chat = true;
