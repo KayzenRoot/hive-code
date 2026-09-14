@@ -5,16 +5,24 @@ use tracing::warn;
 
 use crate::permission::PermissionConfirmation;
 
+const MAX_SEEN_CONFIRMATION_IDS: usize = 8_192;
+
 pub(super) struct ToolConfirmationRouter {
     pending: Mutex<HashMap<(String, String), oneshot::Sender<PermissionConfirmation>>>,
     seen: Mutex<HashSet<(String, String)>>,
+    max_seen_confirmation_ids: usize,
 }
 
 impl ToolConfirmationRouter {
     pub(super) fn new() -> Self {
+        Self::with_max_seen_confirmation_ids(MAX_SEEN_CONFIRMATION_IDS)
+    }
+
+    fn with_max_seen_confirmation_ids(max_seen_confirmation_ids: usize) -> Self {
         Self {
             pending: Mutex::new(HashMap::new()),
             seen: Mutex::new(HashSet::new()),
+            max_seen_confirmation_ids,
         }
     }
 
@@ -26,7 +34,8 @@ impl ToolConfirmationRouter {
         let key = (session_id, request_id);
         let (tx, rx) = oneshot::channel();
 
-        if !self.seen.lock().await.insert(key.clone()) {
+        let mut seen = self.seen.lock().await;
+        if seen.contains(&key) {
             warn!(
                 session_id = %key.0,
                 request_id = %key.1,
@@ -35,6 +44,20 @@ impl ToolConfirmationRouter {
             drop(tx);
             return rx;
         }
+
+        if seen.len() >= self.max_seen_confirmation_ids {
+            warn!(
+                session_id = %key.0,
+                request_id = %key.1,
+                max_seen_confirmation_ids = self.max_seen_confirmation_ids,
+                "Rejected tool confirmation request because anti-replay tombstone capacity was reached"
+            );
+            drop(tx);
+            return rx;
+        }
+
+        seen.insert(key.clone());
+        drop(seen);
 
         let mut pending = self.pending.lock().await;
         pending.retain(|_, sender| !sender.is_closed());
@@ -170,6 +193,36 @@ mod tests {
                 .deliver("session_1", "req_1", test_confirmation())
                 .await
         );
+    }
+
+    #[tokio::test]
+    async fn test_tombstone_capacity_fails_closed_without_reopening_old_ids() {
+        let router = ToolConfirmationRouter::with_max_seen_confirmation_ids(2);
+
+        let first = router
+            .register("session_1".to_string(), "req_1".to_string())
+            .await;
+        drop(first);
+        let second = router
+            .register("session_1".to_string(), "req_2".to_string())
+            .await;
+        drop(second);
+
+        let over_capacity = router
+            .register("session_1".to_string(), "req_3".to_string())
+            .await;
+        assert!(over_capacity.await.is_err());
+        assert!(
+            !router
+                .deliver("session_1", "req_3", test_confirmation())
+                .await
+        );
+
+        let reused = router
+            .register("session_1".to_string(), "req_1".to_string())
+            .await;
+        assert!(reused.await.is_err());
+        assert_eq!(router.seen.lock().await.len(), 2);
     }
 
     #[tokio::test]
