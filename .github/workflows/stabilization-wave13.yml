@@ -21,6 +21,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.96.1
+          components: rustfmt
 
       - uses: Swatinem/rust-cache@v2
 
@@ -112,7 +113,7 @@ jobs:
               raise SystemExit(f"unexpected replacement count: {count}")
 
       - name: Format
-        run: cargo fmt --all -- --check || cargo fmt --all
+        run: cargo fmt --all
 
       - name: ACP provider permission regression
         run: cargo test -p goose --locked --test acp_provider_test test_permission_persistence -- --nocapture
