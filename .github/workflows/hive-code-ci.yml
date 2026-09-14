@@ -1,0 +1,82 @@
+name: Hive Code CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hive-code-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust-quality:
+    name: Rust Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.94.1
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Format
+        run: cargo fmt --all -- --check
+      - name: Check
+        run: cargo check --workspace --locked
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+  rust-tests:
+    name: Rust Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.94.1
+      - uses: Swatinem/rust-cache@v2
+      - name: Test
+        run: cargo test --workspace --locked
+
+  desktop:
+    name: Desktop Typecheck and Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.10.0
+          cache: pnpm
+          cache-dependency-path: ui/pnpm-lock.yaml
+      - name: Install
+        working-directory: ui
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        working-directory: ui/desktop
+        run: pnpm run typecheck
+      - name: Unit tests
+        working-directory: ui/desktop
+        run: pnpm run test:run
+      - name: Lint
+        working-directory: ui/desktop
+        run: pnpm run lint:check
+
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
